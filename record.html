@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MY FIRST SPARK RECORD</title>
+<style>
+body{margin:0;background:#fff;color:#16121c;font-family:'Helvetica Neue',Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+main{max-width:480px;margin:0 auto;padding:28px 22px 60px}
+.k{color:#777777;font-weight:800;font-size:12px;letter-spacing:.08em}
+h1{margin:6px 0 2px;color:#ff2d87;font-style:italic;font-weight:900;font-size:34px;line-height:1}
+.type{font-size:26px;font-weight:900;margin:22px 0 6px}.desc{color:#555;line-height:1.5;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.c{border:1px solid #e6e2f2;padding:12px}.c b{display:block;font-size:26px;color:#ff2d87}
+.bars{display:flex;align-items:flex-end;gap:3px;height:90px;margin:8px 0 4px}.bars i{flex:1;background:#ff2d87;min-height:2px}
+.ph{display:flex;justify-content:space-between;font-size:11px;color:#777777;font-weight:800}
+ul{padding-left:18px;line-height:1.7}.btn{display:block;width:100%;box-sizing:border-box;background:#ff2d87;color:#fff;border:0;padding:16px;font:inherit;font-weight:800;margin-top:20px;font-size:16px}
+.note{color:#999;font-size:12px;margin-top:18px}
+</style></head><body><main id="m"><p class="k">SPARKON</p></main>
+<script>
+// 기록 데이터는 주소의 # 뒤에만 있어요. 어떤 서버로도 전송되지 않아요.
+const TY=[['QUIET SPARK','주먹으로 인식된 움직임이 적었어요.'],['STEADY SPARK','24초 동안 에너지가 고르게 이어졌어요.'],['HIGHLIGHT BURST','하이라이트 구간에 에너지가 가장 크게 몰렸어요.'],['LATE IGNITE','후반으로 갈수록 움직임이 커졌어요.'],['FAST START','시작과 빌드업 구간에서 에너지가 가장 컸어요.']];
+const PH=['INTRO','BUILD','HIGHLIGHT','END'];
+try{
+  let s=location.hash.slice(1).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';
+  const a=JSON.parse(atob(s)),[id,ti,str,sps,act,pt,amp,both,voice]=a,e=a.slice(9).map(v=>v/10);
+  const ty=TY[ti]||TY[1],pk=Math.max(...e,.01);
+  const ph=[[0,4],[4,10],[10,20],[20,24]].map(([x,y])=>e.slice(x,y).reduce((p,q)=>p+q,0)/(y-x)),bi=ph.indexOf(Math.max(...ph));
+  const lines=['24초 중 <b>'+act+'초</b> 동안 주먹을 들고 움직였어요.','총 <b>'+str+'번</b> 흔들었고, 주먹을 든 시간 기준 초당 <b>'+sps+'번</b>이에요.','에너지가 가장 몰린 구간은 <b>'+PH[bi]+'</b>이고, 가장 세게 움직인 순간은 <b>'+pt+'초</b>예요.'];
+  if(both>1)lines.push('두 손을 함께 쓴 시간은 '+both+'초예요.');
+  if(voice>0)lines.push('큰 소리가 감지된 구간은 '+voice+'초예요. (유형에는 반영되지 않아요)');
+  m.innerHTML=`<p class="k">SPARKON · SPARK ID ${id}</p><h1>MY FIRST<br>SPARK RECORD</h1>
+  <div class="type">${ty[0]}</div><p class="desc">${ty[1]}</p>
+  <div class="grid"><div class="c"><b>${str}</b>흔든 횟수</div><div class="c"><b>${sps}</b>초당 흔든 횟수</div><div class="c"><b>${act}s</b>주먹 든 시간 / 24s</div><div class="c"><b>${pt}s</b>PEAK TIME</div></div>
+  <p class="k" style="margin-top:22px">24초 동안의 에너지</p><div class="bars">${e.map(v=>`<i style="height:${v/pk*100}%"></i>`).join('')}</div>
+  <div class="ph"><span>INTRO</span><span>BUILD</span><span>HIGHLIGHT</span><span>END</span></div>
+  <ul>${lines.map(l=>`<li>${l}</li>`).join('')}</ul><button class="btn" id="sv">이미지로 저장</button><p class="note">YOUR SPARK, FINALLY LIVE.</p>`;
+  sv.onclick=()=>{
+    const c=document.createElement('canvas');c.width=1080;c.height=1500;const x=c.getContext('2d');
+    const t=(q,X,Y,z,col,w='800')=>{x.font=`${w} ${z}px 'Helvetica Neue',Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif`;x.fillStyle=col;x.textAlign='left';x.fillText(q,X,Y)};
+    x.fillStyle='#fff';x.fillRect(0,0,1080,1500);t('SPARKON · SPARK ID '+id,70,110,28,'#777777');
+    t('MY FIRST',70,210,96,'#ff2d87','900');t('SPARK RECORD',70,300,96,'#ff2d87','900');t(ty[0],70,420,64,'#16121c','900');
+    [[str,'흔든 횟수'],[sps,'초당 흔든 횟수'],[act+'s','주먹 든 시간'],[pt+'s','PEAK TIME']].forEach((v,i)=>{const X=70+(i%2)*470,Y=500+Math.floor(i/2)*200;x.strokeStyle='#e6e2f2';x.strokeRect(X,Y,440,170);t(v[0]+'',X+24,Y+95,72,'#ff2d87','900');t(v[1],X+24,Y+145,28,'#555','600')});
+    t('24초 동안의 에너지',70,960,28,'#777777');e.forEach((v,i)=>{const h=Math.max(4,v/pk*220);x.fillStyle='#ff2d87';x.fillRect(70+i*39,1220-h,33,h)});
+    PH.forEach((q,i)=>t(q,70+i*250,1262,22,'#777777'));
+    lines.slice(0,3).forEach((l,i)=>t(l.replace(/<[^>]+>/g,''),70,1340+i*44,26,'#16121c','600'));t('YOUR SPARK, FINALLY LIVE.',70,1460,30,'#ff2d87');
+    const d=document.createElement('a');d.href=c.toDataURL('image/png');d.download='spark-'+id+'.png';d.click()};
+}catch(err){m.innerHTML='<p class="k">SPARKON</p><h1>MY FIRST<br>SPARK RECORD</h1><p class="desc">QR을 다시 스캔해주세요. 기록 데이터를 읽지 못했어요.</p>'}
+</script></body></html>
