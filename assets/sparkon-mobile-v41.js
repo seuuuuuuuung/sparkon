@@ -1,4 +1,4 @@
-/* SPARKON mobile record: original artwork, dynamic group portraits and collectible PNG. */
+/* SPARKON v44 mobile record: preserved original art, photo and clean type. */
 (() => {
   'use strict';
   const $=id=>document.getElementById(id),V=window.SPARKON_V41,D=window.SPARKON_DATA;
@@ -24,6 +24,9 @@
   $('typeMessage').textContent=type.message;
   $('topDate').textContent=record.date;
   $('artistName').textContent=artist.name;
+  // Long official team names must not fill or break the entire mobile artboard.
+  if(artist.name.length>=12)$('artistName').style.fontSize='clamp(31px,7.0vw,49px)';
+  else if(artist.name.length>=9)$('artistName').style.fontSize='clamp(36px,8.4vw,57px)';
   $('songName').textContent=artist.song;
   $('artistHook').textContent=artist.hook;
   $('artistDescription').textContent=artist.description;
@@ -44,15 +47,27 @@
   function redraw(){
     const chart=$('graph'),width=chart.getBoundingClientRect().width,height=parseFloat(getComputedStyle(chart).height)||215;
     if(width>0)V.graph(sizeCanvas(chart,width,height),record.artists,width,height,{labels:true,labelSize:Math.max(9,Math.min(15,width/30)),markerSize:11,lineWidth:3});
-    const grid=$('perspective'),gw=grid.parentElement.getBoundingClientRect().width;const context=sizeCanvas(grid,gw,590);V.perspective(context,gw,590,.29);
-    const fade=context.createLinearGradient(0,0,0,590);fade.addColorStop(0,'rgba(255,255,255,0)');fade.addColorStop(1,'#ffffff');context.fillStyle=fade;context.fillRect(0,0,gw,590);
+    // Perspective lines now converge toward a single poster-style vanishing
+    // point and disappear as the record content starts (no second loose grid).
+    const grid=$('perspective'),gw=grid.parentElement.getBoundingClientRect().width,context=sizeCanvas(grid,gw,590);
+    const vx=gw*.51,vy=282;
+    context.strokeStyle='rgba(35,35,41,.075)';context.lineWidth=.7;
+    for(let ex=-gw*2;ex<=gw*3;ex+=gw/8){context.beginPath();context.moveTo(vx,vy);context.lineTo(ex,-320);context.stroke();}
+    context.strokeStyle='rgba(35,35,41,.045)';
+    for(let ex=-gw*2;ex<=gw*3;ex+=gw/8){context.beginPath();context.moveTo(vx,vy);context.lineTo(ex,590);context.stroke();}
+    for(let yy=48;yy<355;yy+=58){context.beginPath();context.moveTo(0,yy);context.lineTo(gw,yy);context.stroke();}
+    const fade=context.createLinearGradient(0,170,0,520);fade.addColorStop(0,'rgba(255,255,255,0)');fade.addColorStop(1,'#ffffff');context.fillStyle=fade;context.fillRect(0,170,gw,420);
   }
   window.addEventListener('resize',redraw,{passive:true});redraw();
   if(window.ResizeObserver)new ResizeObserver(redraw).observe($('graph').parentElement);
 
   function typography(c,content,x,y,size,color='#101014',weight=900,family='display',maxWidth){
-    c.save();c.font=`${weight} ${size}px ${family==='ko'?"'Paperlogy', 'Pretendard', 'DejaVu Sans', sans-serif":family==='body'?"'PP Palma', 'DejaVu Sans', Arial,sans-serif":"'PP Neue Machina Inktrap','DejaVu Sans','Helvetica Neue',Arial,sans-serif"}`;
-    c.fillStyle=color;if(maxWidth)c.fillText(content,x,y,maxWidth);else c.fillText(content,x,y);c.restore();
+    c.save();const fontFamily=family==='ko'?"'Paperlogy', 'Pretendard', sans-serif":family==='body'?"'PP Palma', 'Pretendard', Arial,sans-serif":"'PP Neue Machina Inktrap','Pretendard','Helvetica Neue',Arial,sans-serif";
+    c.font=`${weight} ${size}px ${fontFamily}`;
+    // Canvas fillText(..., maxWidth) can stretch mixed Korean/Latin lettering
+    // into illegible shapes in some canvas renderers. Fit by font size instead.
+    if(maxWidth){const actual=c.measureText(content).width;if(actual>maxWidth&&actual>0){size*=maxWidth/actual;c.font=`${weight} ${size}px ${fontFamily}`;}}
+    c.fillStyle=color;c.fillText(content,x,y);c.restore();
   }
   function fitWholeGroup(c,im,x,y,w,h){
     c.fillStyle='#f4f3f4';c.fillRect(x,y,w,h);
@@ -66,13 +81,17 @@
     const plate=new Image();plate.src='./assets/record_saved_reference.png';
     try{await plate.decode();x.drawImage(plate,0,0,1080,1701);}catch{ x.fillStyle='#fff';x.fillRect(0,0,1080,1701);V.perspective(x,1080,540,.21);}
     const clear=(a,b,w,h)=>{x.fillStyle='#fff';x.fillRect(a,b,w,h);};
-    const name=artist.name;let fs=145;
+    const name=artist.name;let fs=132;
     clear(90,366,735,161);
-    while(fs>53){x.font=`900 ${fs}px 'PP Neue Machina Inktrap','DejaVu Sans',Arial,sans-serif`;if(x.measureText(name).width<738)break;fs-=3;}
+    while(fs>53){x.font=`900 ${fs}px 'PP Neue Machina Inktrap','Pretendard',Arial,sans-serif`;if(x.measureText(name).width<738)break;fs-=3;}
     typography(x,name,94,496,fs,V.pink,900,'display',739);
-    // Restore the original pink spark above long artist names instead of
-    // leaving a rectangle cut out of its lower tip.
-    if(plate.naturalWidth)x.drawImage(plate,720,0,360,440,720,0,360,440);
+    // Source art extends far into the upper right, but v43's 720..1080 crop
+    // also pasted the original reference name ('KickFlip') back over the
+    // selected artist. Restore only regions ABOVE that example-name baseline.
+    if(plate.naturalWidth){
+      x.drawImage(plate,700,0,120,340,700,0,120,340);
+      x.drawImage(plate,820,0,260,440,820,0,260,440);
+    }
     // The original lime skewed song tab is left untouched.
     clear(94,570,522,60);
     typography(x,'나를 움직이게 만든 '+artist.name+'의 노래',99,606,27,V.ink,850,'ko',518);
@@ -86,7 +105,9 @@
       const gr=x.createLinearGradient(bx,by,bx+bw,by+bh);gr.addColorStop(0,'#ffe5f0');gr.addColorStop(.52,'#fa94c6');gr.addColorStop(1,'#dfff82');x.fillStyle=gr;x.fillRect(bx,by,bw,bh);
       x.save();x.beginPath();x.rect(bx,by,bw,bh);x.clip();V.star(x,774,830,350,V.pink,.22);V.star(x,284,980,174,V.lime,-.4);x.globalAlpha=.9;typography(x,name,126,931,Math.max(58,fs-15),'#fff',900,'display',780);x.restore();
     }
-    clear(97,1192,894,151);
+    // Clear the source-artwork's fixed peak star all the way from the photo's
+    // lower edge; v43 left a disconnected pink triangle at this boundary.
+    clear(97,1182,894,161);
     const wave=document.createElement('canvas');wave.width=873;wave.height=112;
     V.graph(wave.getContext('2d'),record.artists,873,112,{labels:false,padX:0,top:5,markerSize:15,lineWidth:4});
     x.drawImage(wave,102,1232);
@@ -95,12 +116,14 @@
     x.fillStyle='#fff';x.fillRect(123,1197,295,50);
     x.save();
     x.fillStyle=V.pink;
-    x.font="italic 900 37px 'PP Neue Machina Inktrap','DejaVu Sans',Arial,sans-serif";
+    x.font="italic 900 37px 'PP Neue Machina Inktrap','Pretendard',Arial,sans-serif";
     x.fillText(type.label,129,1234,286);
     x.strokeStyle=V.pink;x.lineWidth=2;x.beginPath();x.moveTo(357,1241);x.lineTo(393,1204);x.stroke();
     x.restore();
     x.strokeStyle='#ece9ee';x.lineWidth=1;x.beginPath();x.moveTo(101,1352);x.lineTo(979,1352);x.stroke();
-    clear(108,1463,875,123);
+    // The original giant YYYY.MM.DD starts above 1463px; cover its complete
+    // glyph height before drawing the actual experience date.
+    clear(101,1444,884,145);
     x.textAlign='center';typography(x,record.date,540,1551,115,V.ink,900,'display',850);x.textAlign='left';
     typography(x,'No.'+record.id,110,1658,21,'#777',700,'body');
     return await new Promise((resolve,reject)=>c.toBlob(blob=>blob?resolve(blob):reject(new Error('Cannot render PNG')),'image/png'));

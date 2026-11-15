@@ -1,4 +1,4 @@
-/* v43 — original artwork, genuinely segmented silhouette and three-stage audio. */
+/* v44 — restored original composition, clean person outline and measured tabs. */
 (() => {
   'use strict';
   const D=window.SPARKON_DATA,V=window.SPARKON_V41;
@@ -52,11 +52,11 @@
     for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
     return segCache[file]=URL.createObjectURL(new Blob([bytes],{type:info[0]}));
   }
-  const personMask=document.createElement('canvas');personMask.width=160;personMask.height=120;
+  const personMask=document.createElement('canvas');personMask.width=320;personMask.height=240;
   const personCtx=personMask.getContext('2d',{willReadFrequently:true});
   let segmenter=null,segmentBusy=false,segmentLast=0,segmentedAt=0,segmentationStatus='초기화 대기',segmentationFailures=0;
   function showPersonSilhouette(maskImage){
-    const mw=160,mh=120;
+    const mw=320,mh=240;
     personCtx.save();personCtx.clearRect(0,0,mw,mh);
     personCtx.translate(mw,0);personCtx.scale(-1,1);personCtx.drawImage(maskImage,0,0,mw,mh);personCtx.restore();
     const pixels=personCtx.getImageData(0,0,mw,mh).data;
@@ -72,16 +72,17 @@
     }
     const frame=tt.createImageData(320,240),out=frame.data;
     for(let y=0;y<240;y++)for(let x=0;x<320;x++){
-      const sx=Math.min(mw-1,x>>1),sy=Math.min(mh-1,y>>1),p=sy*mw+sx,inside=smooth[p]===1;
+      const sx=x,sy=y,p=sy*mw+sx,inside=smooth[p]===1;
       let edge=false;for(let d=-2;d<=2&&!edge;d+=4){
         const nx=Math.max(0,Math.min(mw-1,sx+d)),ny=Math.max(0,Math.min(mh-1,sy+d));
         edge=smooth[sy*mw+nx]!==smooth[p]||smooth[ny*mw+sx]!==smooth[p];
       }
       const i=(y*320+x)*4;
-      if(inside&&edge){out[i]=142;out[i+1]=24;out[i+2]=93;}
+      // One matte, two contour colors. No grain, heat-map bands, or facial details.
+      if(inside&&edge){out[i]=237;out[i+1]=57;out[i+2]=146;}
       else if(!inside&&edge){out[i]=192;out[i+1]=251;out[i+2]=49;}
-      else if(inside){const f=(1-Math.abs(y-120)/120)*.22;out[i]=237+Math.round(15*f);out[i+1]=57+Math.round(94*f);out[i+2]=146+Math.round(22*f);}
-      else{out[i]=255;out[i+1]=193;out[i+2]=221;}
+      else if(inside){out[i]=248;out[i+1]=145;out[i+2]=192;}
+      else{out[i]=255;out[i+1]=240;out[i+2]=247;}
       out[i+3]=255;
     }
     tt.putImageData(frame,0,0);segmentedAt=performance.now();segmentationStatus='사람 외곽선 인식 중';
@@ -96,8 +97,8 @@
       segmentationStatus='인물 분리 모델 로딩 중';
     }catch(err){console.warn('Segmentation initialization:',err);segmenter=null;segmentationFailures++;}
   }
-  // Fallback remains available if WebAssembly fails on an unusual kiosk.
-  thermalSoft.width=120;thermalSoft.height=90;
+  // Keep the fallback neutral. A brightness-based heatmap incorrectly mapped
+  // the room and furniture as extra people, obscuring the visitor's contour.
   thermalFrame=function(now){
     if(stream&&vid.readyState>=2){
       initPersonSegmenter();
@@ -107,38 +108,32 @@
       }
     }
     if(segmentedAt&&now-segmentedAt<1350)return;
-    lessBlurredFallback(now);
-  };
-  /* Unsegmented luminance fallback: visible while the local model loads. */
-  const lessBlurredFallback=function(now){
-    if(!stream||vid.readyState<2||now-thermalLast<38)return;thermalLast=now;
-    softCtx.save();softCtx.clearRect(0,0,120,90);softCtx.filter='blur(.55px)';softCtx.translate(120,0);softCtx.scale(-1,1);softCtx.drawImage(vid,0,0,120,90);softCtx.restore();
-    ts.save();ts.clearRect(0,0,320,240);ts.imageSmoothingEnabled=true;ts.imageSmoothingQuality='high';ts.filter='blur(.8px)';ts.drawImage(thermalSoft,0,0,320,240);ts.restore();
-    const im=ts.getImageData(0,0,320,240),px=im.data,hist=new Uint32Array(256),lum=new Float32Array(px.length/4);
-    for(let i=0,j=0;i<px.length;i+=4,j++){const l=.299*px[i]+.587*px[i+1]+.114*px[i+2];lum[j]=l;hist[Math.min(255,l|0)]++;}
-    let n=0,lo=18,hi=230;for(let i=0;i<256;i++){n+=hist[i];if(n<lum.length*.07)lo=i;if(n<lum.length*.94)hi=i;}
-    thermalLo=thermalLo*.70+lo*.30;thermalHi=thermalHi*.70+hi*.30;
-    if(!thermalPrev||thermalPrev.length!==lum.length)thermalPrev=lum.slice();
-    const palette=[[237,57,146],[248,91,166],[255,164,205],[221,255,123],[192,251,49]];
-    for(let i=0,j=0;i<px.length;i+=4,j++){
-      thermalPrev[j]=thermalPrev[j]*.24+lum[j]*.76;
-      const q=Math.max(0,Math.min(.999,(thermalPrev[j]-thermalLo)/Math.max(52,thermalHi-thermalLo)))*4;
-      const f=Math.min(3,Math.floor(q)),u=q-f;
-      // Posterized gradients preserve the silhouette while suppressing facial detail.
-      const a=palette[f],b=palette[f+1];const blend=Math.min(1,Math.max(0,(u-.34)/.30));
-      px[i]=a[0]+(b[0]-a[0])*blend;px[i+1]=a[1]+(b[1]-a[1])*blend;px[i+2]=a[2]+(b[2]-a[2])*blend;px[i+3]=255;
-    }
-    tt.putImageData(im,0,0);
+    // Never expose the old noisy heat-map when person separation is loading or
+    // unavailable; it was the source of the dense, unrecognizable filter.
+    if(now-thermalLast>200){thermalLast=now;tt.fillStyle='#fff0f7';tt.fillRect(0,0,320,240);}
   };
   const previousDrawStage=drawStage;
+  function centeredInk(text,x,y,w,h,background,foreground,size){
+    g.save();g.fillStyle=background;g.fillRect(x,y,w,h);
+    g.font=`900 ${size}px 'PP Neue Machina Inktrap','Pretendard','DejaVu Sans',sans-serif`;
+    const metrics=g.measureText(text);
+    const left=metrics.actualBoundingBoxLeft||0,right=metrics.actualBoundingBoxRight||metrics.width;
+    const ascent=metrics.actualBoundingBoxAscent||size*.75,descent=metrics.actualBoundingBoxDescent||0;
+    g.textAlign='left';g.fillStyle=foreground;
+    g.fillText(text,x+w/2+(left-right)/2,y+h/2+(ascent-descent)/2);
+    g.restore();
+  }
   drawStage=function(now){previousDrawStage(now);
-    // Restore both the centered original stage tab and its slim pink progress.
-    g.fillStyle=V.lime;g.fillRect(27,59,162,36);
-    g.save();g.fillStyle=V.ink;g.textAlign='center';g.font="900 19px 'PP Neue Machina Inktrap','DejaVu Sans',sans-serif";g.fillText('SPARK STAGE',108,85,153);g.restore();
+    // Visual-ink centering (not just text advance-width centering).
+    centeredInk('SPARK STAGE',27,59,162,36,V.lime,V.ink,18);
     const current=sessionAlbums[albumIndex],ratio=current?Math.max(0,Math.min(1,(now-trackStart)/(current.duration*1000))):0;
-    g.fillStyle='#ffd2e8';g.fillRect(32,661,934,5);
-    g.fillStyle=V.pink;g.fillRect(32,661,934*(inGap?1:ratio),5);
-    // Leave the original artwork unobstructed; one quiet track label below it.
+    // A clearly visible hot-pink playback rule below, OUTSIDE the stage clip.
+    const bx=32,by=662,bw=934,progress=inGap?1:ratio;
+    g.save();g.fillStyle='rgba(237,57,146,.23)';g.fillRect(bx,by,bw,7);
+    g.fillStyle=V.pink;g.fillRect(bx,by,bw*progress,7);
+    if(progress>0.01){g.fillStyle=V.pink;g.beginPath();g.arc(bx+bw*progress,by+3.5,6.5,0,Math.PI*2);g.fill();}
+    g.restore();
+    // Leave the artwork unobstructed; quiet single-line current-track label.
     const song=sessionAlbums[albumIndex];if(song&&state==='live'){
       T('NOW PLAYING',43,690,13,V.pink,'left','800');
       fitText(inGap?'잠시 후 다음 무대가 시작됩니다':song.artist+'  —  '+song.title,171,690,15,V.ink,650,'700');
@@ -146,8 +141,7 @@
   };
   const previousDrawYou=drawYou;
   drawYou=function(t){previousDrawYou(t);
-    g.fillStyle=V.pink;g.fillRect(936,157,164,33);
-    g.save();g.fillStyle='#fff';g.textAlign='center';g.font="900 19px 'PP Neue Machina Inktrap','DejaVu Sans',sans-serif";g.fillText('YOUR SPARK',1018,182,154);g.restore();
+    centeredInk('YOUR SPARK',936,157,164,33,V.pink,'#fff',18);
   };
 
   function playTrack(i,now){
@@ -239,22 +233,46 @@
     if(recordArt.complete&&recordArt.naturalWidth)g.drawImage(recordArt,0,0,W,H);
     else{g.fillStyle='#fff';g.fillRect(0,0,W,H);V.perspective(g,W,H,.3);}
     const meta=V.types[rec.sparkType],name=meta.label.split(' ');
-    cleanArea(51,174,323,151);
-    T('MY SPARK TYPE',57,169,12,V.ink,'left',700);
-    T(name[0],52,242,79,V.pink,'left',900);
-    T('SPARK',52,307,79,V.pink,'left',900);
-    cleanArea(54,332,400,33);
-    T(meta.message,57,350,20,V.ink,'left',700);
-    // Remove the sample artwork's fixed peak label; the real peak is generated
-    // together with the smooth graph so the annotation never floats off-grid.
-    cleanArea(487,348,252,44);
-    cleanArea(48,382,700,218);
-    if(resultGraphId!==rec.id||!resultGraph){resultGraph=document.createElement('canvas');resultGraph.width=1050;resultGraph.height=317;V.graph(resultGraph.getContext('2d'),rec.artists,1050,317,{labels:true,peakLabel:true,labelSize:25,lineWidth:4,markerSize:16});resultGraphId=rec.id;}
-    g.drawImage(resultGraph,45,378,694,214);
+    // Replace all of the example type, but restore the exact source-artwork
+    // star afterwards; otherwise its left tip gets cut by the white mask.
+    cleanArea(50,178,338,153);
+    // The perspective-grid rays converge behind the type at the original
+    // source artwork's vanishing point. Reconnect them inside the erased area.
+    g.save();g.beginPath();g.rect(50,178,338,153);g.clip();
+    g.strokeStyle='rgba(70,70,80,.038)';g.lineWidth=.65;
+    for(let end=-1400;end<=1900;end+=340){g.beginPath();g.moveTo(640,208);g.lineTo(end,720);g.stroke();}
+    for(let end=-1400;end<=1900;end+=360){g.beginPath();g.moveTo(640,208);g.lineTo(end,-420);g.stroke();}
+    g.restore();
+    // drawImage's source crop uses 2048px reference pixels, whereas the
+    // exhibition canvas is 1280px. The previous v43 code mixed these spaces
+    // and pasted leftover 'BURST' letters instead of the original star.
+    g.save();g.beginPath();g.moveTo(417,112);
+    g.bezierCurveTo(427,163,440,191,462,191);
+    g.bezierCurveTo(480,191,508,180,538,173);
+    g.bezierCurveTo(496,204,464,220,465,246);
+    g.bezierCurveTo(467,267,471,292,479,318);
+    g.bezierCurveTo(454,281,430,241,411,234);
+    g.bezierCurveTo(396,227,381,230,364,232);
+    g.bezierCurveTo(392,213,408,176,417,112);
+    g.closePath();g.clip();
+    g.drawImage(recordArt,574,178,302,350,359,111,188,219);g.restore();
+    T(name[0],52,244,75,V.pink,'left',900);
+    T('SPARK',52,305,75,V.pink,'left',900);
+    cleanArea(51,331,408,34);
+    fitText(meta.message,57,354,18,V.ink,398,800);
+    // Preserve the designer's original '나의 스파크 순간' typography at its
+    // original position (around x535,y366); remove only example chart content.
+    cleanArea(48,386,698,215);
+    if(resultGraphId!==rec.id||!resultGraph){resultGraph=document.createElement('canvas');resultGraph.width=1050;resultGraph.height=317;V.graph(resultGraph.getContext('2d'),rec.artists,1050,317,{labels:true,labelSize:25,lineWidth:4,markerSize:15});resultGraphId=rec.id;}
+    g.drawImage(resultGraph,45,384,694,214);
     const selected=rec.artists[rec.winner],artist=selected&&D[selected.artistId];
     cleanArea(178,610,504,58);
-    T('오늘, 내 마음을 움직인 아티스트',190,650,19,V.ink,'left',800);
-    fitText(artist?artist.name:'다음 스파크를 찾아보세요',431,651,37,V.pink,251,900);
+    const sentence='오늘, 내 마음을 움직인 아티스트';
+    T(sentence,190,650,18,V.ink,'left',800);
+    g.save();g.font=`800 18px ${face(sentence)}`;
+    const nameStart=Math.max(442,190+g.measureText(sentence).width+23);
+    g.restore();
+    fitText(artist?artist.name:'다음 스파크를 찾아보세요',nameStart,651,33,V.pink,Math.max(74,678-nameStart),900);
     qrDraw(899,291,216);
     cleanArea(949,516,154,22);
     T('MY SPARK ID  #'+rec.id,1022,529,11,'#888','center',700);
