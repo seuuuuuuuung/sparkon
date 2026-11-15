@@ -55,8 +55,22 @@
     const vals=[];let pos=0;const sections=[];
     rows.forEach((r,i)=>{const duration=Number(r.duration)||1;const curve=r.curve?.length?r.curve:[0,0];sections.push({start:pos/total,end:(pos+duration)/total,row:r});curve.forEach((v,j)=>vals.push([padX+innerW*((pos+duration*j/Math.max(1,curve.length-1))/total),Number(v)||0]));pos+=duration;});
     const peak=Math.max(.5,...vals.map(p=>p[1]));const points=vals.map(([x,y])=>[x,baseline-((y/peak)*Math.max(15,baseline-top-19))]);
-    if(points.length){const area=c.createLinearGradient(0,top,0,baseline);area.addColorStop(0,'rgba(237,57,146,.32)');area.addColorStop(1,'rgba(237,57,146,0)');c.beginPath();c.moveTo(points[0][0],baseline);points.forEach((p,i)=>i===0?c.lineTo(p[0],p[1]):c.lineTo(p[0],p[1]));c.lineTo(points[points.length-1][0],baseline);c.closePath();c.fillStyle=area;c.fill();c.beginPath();points.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.strokeStyle=pink;c.lineWidth=opts.lineWidth||4;c.lineCap='round';c.lineJoin='round';c.stroke();}
-    const highIndex=vals.findIndex(p=>p[1]===Math.max(...vals.map(v=>v[1])));if(highIndex>=0&&vals[highIndex][1]>.15){const p=points[highIndex];star(c,p[0],p[1],opts.markerSize||14);if(opts.peakLabel){c.fillStyle=pink;c.font=`700 ${opts.labelSize||17}px 'Paperlogy',sans-serif`;c.fillText('✦ 나의 스파크 순간',Math.min(w-205,p[0]+17),Math.max(23,p[1]-18));}}
+    function traceCurve(join=false){
+      if(!points.length)return;
+      if(join)c.lineTo(...points[0]);else c.moveTo(...points[0]);
+      for(let i=0;i<points.length-1;i++){
+        const a=points[Math.max(0,i-1)],b=points[i],d=points[i+1],e=points[Math.min(points.length-1,i+2)];
+        const dx=Math.max(0,d[0]-b[0]),limitY=n=>Math.max(top,Math.min(baseline,n));
+        c.bezierCurveTo(b[0]+dx/3,limitY(b[1]+(d[1]-a[1])*.16),d[0]-dx/3,limitY(d[1]-(e[1]-b[1])*.16),d[0],d[1]);
+      }
+    }
+    if(points.length){
+      const area=c.createLinearGradient(0,top,0,baseline);
+      area.addColorStop(0,'rgba(237,57,146,.32)');area.addColorStop(1,'rgba(237,57,146,0)');
+      c.beginPath();c.moveTo(points[0][0],baseline);traceCurve(true);c.lineTo(points[points.length-1][0],baseline);c.closePath();c.fillStyle=area;c.fill();
+      c.beginPath();traceCurve();c.strokeStyle=pink;c.lineWidth=opts.lineWidth||4;c.lineCap='round';c.lineJoin='round';c.stroke();
+    }
+    const highIndex=vals.findIndex(p=>p[1]===Math.max(...vals.map(v=>v[1])));if(highIndex>=0&&vals[highIndex][1]>.15){const p=points[highIndex];star(c,p[0],p[1],opts.markerSize||14);if(opts.peakLabel){c.fillStyle=pink;c.font=`700 ${opts.labelSize||17}px 'Paperlogy',sans-serif`;c.fillText('나의 스파크 순간',Math.min(w-206,p[0]+19),Math.max(24,p[1]-18));}}
     sections.forEach((s,i)=>{const x=padX+innerW*s.end;if(i<sections.length-1){c.strokeStyle='#dcdce2';c.lineWidth=1;c.beginPath();c.moveTo(x,top+7);c.lineTo(x,h-(opts.labels===false?8:7));c.stroke();}if(opts.labels!==false){const mid=padX+innerW*(s.start+s.end)/2;c.textAlign='center';const artist=s.row.artist||s.row.name||'';const song=s.row.title||s.row.song||'';const labelSize=opts.labelSize||17;c.fillStyle=ink;c.font=`800 ${labelSize}px 'PP Neue Machina Inktrap', 'DejaVu Sans',sans-serif`;c.fillText(artist,mid,h-32,innerW*(s.end-s.start)-9);c.fillStyle=pink;c.font=`700 ${Math.max(11,labelSize-2)}px 'Paperlogy', 'DejaVu Sans',sans-serif`;c.fillText(song,mid,h-10,innerW*(s.end-s.start)-9);}});c.restore();
   }
   root.SPARKON_V41={pink,lime,ink,types,today,classification,strength,best,encode,decode,star,perspective,graph,round};

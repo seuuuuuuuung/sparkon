@@ -1,7 +1,9 @@
-/* SPARKON mobile record + independently designed collectible PNG. */
+/* SPARKON mobile record: original artwork, dynamic group portraits and collectible PNG. */
 (() => {
   'use strict';
   const $=id=>document.getElementById(id),V=window.SPARKON_V41,D=window.SPARKON_DATA;
+  const portraits=['lngshot.jpg','kickflip.jpg','izna.jpg','allday.jpg','nexz.webp','meovv_vogue.jpg','cravity.jpg','kisoflife.jpg'];
+  const portraitPath=id=>Number.isInteger(id)&&portraits[id]?'./assets/artists/'+portraits[id]:'';
   let record=null,exportUrl=null;
   const params=new URLSearchParams(location.search),isDemo=params.has('demo');
   try{record=V.decode(location.hash.slice(1));}catch(err){console.warn('Invalid SPARKON QR payload',err);}
@@ -33,8 +35,9 @@
   $('youtubeLink').href=videoId?'https://www.youtube.com/watch?v='+videoId:'https://www.youtube.com/results?search_query='+encodeURIComponent(artist.name+' '+artist.song+' live');
   $('spotifyLink').href=spotifyId?'https://open.spotify.com/playlist/'+spotifyId:'https://open.spotify.com/search/'+encodeURIComponent(artist.name);
   const thumb=$('artistVisual');
-  if(artist.id===1){thumb.src='./assets/kickflip_reference_photo.png';}
-  else if(videoId){thumb.src='https://i.ytimg.com/vi/'+videoId+'/hqdefault.jpg';thumb.onerror=()=>{thumb.hidden=true;};}else thumb.hidden=true;
+  const portrait=portraitPath(artist.id);
+  thumb.src=portrait||'./assets/logo.png';thumb.alt=artist.name+' 멤버 단체 이미지';
+  thumb.onerror=()=>{if(artist.id===1&&thumb.src.indexOf('kickflip_reference_photo')<0){thumb.src='./assets/kickflip_reference_photo.png';return;}thumb.hidden=true;};
   if(!selected){$('artistHook').textContent='오늘의 세 무대를 다시 만나며 나만의 스파크를 찾아보세요.';}
 
   function sizeCanvas(c,w,h){const dpr=Math.min(2,window.devicePixelRatio||1);c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);c.style.width=w+'px';c.style.height=h+'px';const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);return x;}
@@ -51,7 +54,11 @@
     c.save();c.font=`${weight} ${size}px ${family==='ko'?"'Paperlogy', 'Pretendard', 'DejaVu Sans', sans-serif":family==='body'?"'PP Palma', 'DejaVu Sans', Arial,sans-serif":"'PP Neue Machina Inktrap','DejaVu Sans','Helvetica Neue',Arial,sans-serif"}`;
     c.fillStyle=color;if(maxWidth)c.fillText(content,x,y,maxWidth);else c.fillText(content,x,y);c.restore();
   }
-  function cropped(c,im,x,y,w,h){const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r;c.drawImage(im,(im.naturalWidth-sw)/2,(im.naturalHeight-sh)/2,sw,sh,x,y,w,h);}
+  function fitWholeGroup(c,im,x,y,w,h){
+    c.fillStyle='#f4f3f4';c.fillRect(x,y,w,h);
+    const ratio=Math.min(w/im.naturalWidth,h/im.naturalHeight),iw=im.naturalWidth*ratio,ih=im.naturalHeight*ratio;
+    c.drawImage(im,x+(w-iw)/2,y+(h-ih)/2,iw,ih);
+  }
   async function exportImage(){
     await document.fonts.ready;
     const c=document.createElement('canvas');c.width=1080;c.height=1701;const x=c.getContext('2d');
@@ -63,6 +70,9 @@
     clear(90,366,735,161);
     while(fs>53){x.font=`900 ${fs}px 'PP Neue Machina Inktrap','DejaVu Sans',Arial,sans-serif`;if(x.measureText(name).width<738)break;fs-=3;}
     typography(x,name,94,496,fs,V.pink,900,'display',739);
+    // Restore the original pink spark above long artist names instead of
+    // leaving a rectangle cut out of its lower tip.
+    if(plate.naturalWidth)x.drawImage(plate,720,0,360,440,720,0,360,440);
     // The original lime skewed song tab is left untouched.
     clear(94,570,522,60);
     typography(x,'나를 움직이게 만든 '+artist.name+'의 노래',99,606,27,V.ink,850,'ko',518);
@@ -70,19 +80,26 @@
     x.textAlign='center';typography(x,artist.song.toUpperCase(),833,605,43,V.ink,900,'display',250);x.textAlign='left';
     const bx=103,by=663,bw=875,bh=519;
     let hasImage=false;
-    if(artist.id===1){const im=new Image();im.src='./assets/kickflip_reference_photo.png';try{await im.decode();cropped(x,im,bx,by,bw,bh);hasImage=true;}catch{}}
-    if(!hasImage&&videoId){const im=new Image();im.crossOrigin='anonymous';im.src='https://i.ytimg.com/vi/'+videoId+'/hqdefault.jpg';
-      try{await Promise.race([im.decode(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('thumbnail timeout')),3000))]);const test=document.createElement('canvas');test.width=2;test.height=2;const t=test.getContext('2d');t.drawImage(im,0,0,2,2);t.getImageData(0,0,1,1);cropped(x,im,bx,by,bw,bh);hasImage=true;}catch{}
-    }
+    if(portrait){const im=new Image();im.src=portrait;try{await im.decode();fitWholeGroup(x,im,bx,by,bw,bh);hasImage=true;}catch{}}
+    if(!hasImage&&artist.id===1){const im=new Image();im.src='./assets/kickflip_reference_photo.png';try{await im.decode();fitWholeGroup(x,im,bx,by,bw,bh);hasImage=true;}catch{}}
     if(!hasImage){
       const gr=x.createLinearGradient(bx,by,bx+bw,by+bh);gr.addColorStop(0,'#ffe5f0');gr.addColorStop(.52,'#fa94c6');gr.addColorStop(1,'#dfff82');x.fillStyle=gr;x.fillRect(bx,by,bw,bh);
       x.save();x.beginPath();x.rect(bx,by,bw,bh);x.clip();V.star(x,774,830,350,V.pink,.22);V.star(x,284,980,174,V.lime,-.4);x.globalAlpha=.9;typography(x,name,126,931,Math.max(58,fs-15),'#fff',900,'display',780);x.restore();
     }
-    clear(97,1192,894,165);
-    typography(x,type.label,128,1238,36,V.pink,900,'display');
-    const wave=document.createElement('canvas');wave.width=873;wave.height=135;
-    V.graph(wave.getContext('2d'),record.artists,873,135,{labels:false,padX:0,top:4,markerSize:15,lineWidth:4});
-    x.drawImage(wave,102,1215);
+    clear(97,1192,894,151);
+    const wave=document.createElement('canvas');wave.width=873;wave.height=112;
+    V.graph(wave.getContext('2d'),record.artists,873,112,{labels:false,padX:0,top:5,markerSize:15,lineWidth:4});
+    x.drawImage(wave,102,1232);
+    // Type caption is kept at the same location as the supplied artwork,
+    // above the pink waveform rather than underneath it.
+    x.fillStyle='#fff';x.fillRect(123,1197,295,50);
+    x.save();
+    x.fillStyle=V.pink;
+    x.font="italic 900 37px 'PP Neue Machina Inktrap','DejaVu Sans',Arial,sans-serif";
+    x.fillText(type.label,129,1234,286);
+    x.strokeStyle=V.pink;x.lineWidth=2;x.beginPath();x.moveTo(357,1241);x.lineTo(393,1204);x.stroke();
+    x.restore();
+    x.strokeStyle='#ece9ee';x.lineWidth=1;x.beginPath();x.moveTo(101,1352);x.lineTo(979,1352);x.stroke();
     clear(108,1463,875,123);
     x.textAlign='center';typography(x,record.date,540,1551,115,V.ink,900,'display',850);x.textAlign='left';
     typography(x,'No.'+record.id,110,1658,21,'#777',700,'body');

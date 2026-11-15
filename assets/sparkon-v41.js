@@ -1,9 +1,10 @@
-/* v42 — original artwork preserved; three-stage audio and cleaner silhouette. */
+/* v43 — original artwork, genuinely segmented silhouette and three-stage audio. */
 (() => {
   'use strict';
   const D=window.SPARKON_DATA,V=window.SPARKON_V41;
   if(!D||!V){console.error('SPARKON v41 data missing');return;}
   const GAP=1350,FADE=450;
+  const DEFAULT_RECORD_URL='https://seuuuuuuuung.github.io/sparkon/record.html';
   let trackStart=0,gapStart=0,inGap=false,resultGraph=null,resultGraphId='',playlistOverrides={};
   try{playlistOverrides=JSON.parse(LS.sparkPlaylistV41||'{}')||{};}catch{}
   const songUrl=(data)=>({youtube:playlistOverrides[data.id]?.youtube||data.youtube,spotify:playlistOverrides[data.id]?.spotify||data.spotify});
@@ -41,9 +42,75 @@
   // The v39 original illustrated HOW TO JOIN and its icon reveals remain intact.
   cv.addEventListener('click',unlockPlayback,{capture:true});
 
-  // More recognizable body shape, less blur, flattened pastel pink/lime bands.
+  // Local-only person segmentation. Unlike thermal luminance mapping, this
+  // removes the background and never draws identifiable facial pixels.
+  const segCache={},segData=window.SPARKON_SEGMENTATION_ASSETS||{};
+  function segmentAsset(file){
+    if(segCache[file])return segCache[file];
+    const info=segData[file];if(!info)return './assets/segmentation/'+file;
+    const raw=atob(info[1]),bytes=new Uint8Array(raw.length);
+    for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+    return segCache[file]=URL.createObjectURL(new Blob([bytes],{type:info[0]}));
+  }
+  const personMask=document.createElement('canvas');personMask.width=160;personMask.height=120;
+  const personCtx=personMask.getContext('2d',{willReadFrequently:true});
+  let segmenter=null,segmentBusy=false,segmentLast=0,segmentedAt=0,segmentationStatus='초기화 대기',segmentationFailures=0;
+  function showPersonSilhouette(maskImage){
+    const mw=160,mh=120;
+    personCtx.save();personCtx.clearRect(0,0,mw,mh);
+    personCtx.translate(mw,0);personCtx.scale(-1,1);personCtx.drawImage(maskImage,0,0,mw,mh);personCtx.restore();
+    const pixels=personCtx.getImageData(0,0,mw,mh).data;
+    let minA=255,maxA=0;for(let j=3;j<pixels.length;j+=4){const a=pixels[j];minA=Math.min(minA,a);maxA=Math.max(maxA,a);}
+    const useAlpha=maxA-minA>24,matte=new Uint8Array(mw*mh);
+    for(let i=0;i<matte.length;i++)matte[i]=(useAlpha?pixels[i*4+3]:pixels[i*4])>=112?1:0;
+    // Three-by-three majority closes small segmentation holes without softening
+    // the body's outer contour.
+    const smooth=matte.slice();
+    for(let y=1;y<mh-1;y++)for(let x=1;x<mw-1;x++){
+      let count=0;for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)count+=matte[(y+yy)*mw+x+xx];
+      smooth[y*mw+x]=count>=5?1:0;
+    }
+    const frame=tt.createImageData(320,240),out=frame.data;
+    for(let y=0;y<240;y++)for(let x=0;x<320;x++){
+      const sx=Math.min(mw-1,x>>1),sy=Math.min(mh-1,y>>1),p=sy*mw+sx,inside=smooth[p]===1;
+      let edge=false;for(let d=-2;d<=2&&!edge;d+=4){
+        const nx=Math.max(0,Math.min(mw-1,sx+d)),ny=Math.max(0,Math.min(mh-1,sy+d));
+        edge=smooth[sy*mw+nx]!==smooth[p]||smooth[ny*mw+sx]!==smooth[p];
+      }
+      const i=(y*320+x)*4;
+      if(inside&&edge){out[i]=142;out[i+1]=24;out[i+2]=93;}
+      else if(!inside&&edge){out[i]=192;out[i+1]=251;out[i+2]=49;}
+      else if(inside){const f=(1-Math.abs(y-120)/120)*.22;out[i]=237+Math.round(15*f);out[i+1]=57+Math.round(94*f);out[i+2]=146+Math.round(22*f);}
+      else{out[i]=255;out[i+1]=193;out[i+2]=221;}
+      out[i+3]=255;
+    }
+    tt.putImageData(frame,0,0);segmentedAt=performance.now();segmentationStatus='사람 외곽선 인식 중';
+  }
+  function initPersonSegmenter(){
+    if(segmenter||segmentationFailures>2)return;
+    if(typeof window.SelfieSegmentation!=='function'){segmentationStatus='모델 파일을 확인해주세요';segmentationFailures=3;return;}
+    try{
+      segmenter=new SelfieSegmentation({locateFile:segmentAsset});
+      segmenter.setOptions({modelSelection:0});
+      segmenter.onResults(res=>{if(res.segmentationMask){try{showPersonSilhouette(res.segmentationMask);}catch(e){console.warn('Silhouette canvas:',e);}}});
+      segmentationStatus='인물 분리 모델 로딩 중';
+    }catch(err){console.warn('Segmentation initialization:',err);segmenter=null;segmentationFailures++;}
+  }
+  // Fallback remains available if WebAssembly fails on an unusual kiosk.
   thermalSoft.width=120;thermalSoft.height=90;
   thermalFrame=function(now){
+    if(stream&&vid.readyState>=2){
+      initPersonSegmenter();
+      if(segmenter&&!segmentBusy&&now-segmentLast>145){
+        segmentBusy=true;segmentLast=now;
+        Promise.resolve(segmenter.send({image:vid})).catch(err=>{segmentationFailures++;segmentationStatus='인물 분리 모델 오류';console.warn('Segmentation:',err);if(segmentationFailures>3)segmenter=null;}).finally(()=>{segmentBusy=false;});
+      }
+    }
+    if(segmentedAt&&now-segmentedAt<1350)return;
+    lessBlurredFallback(now);
+  };
+  /* Unsegmented luminance fallback: visible while the local model loads. */
+  const lessBlurredFallback=function(now){
     if(!stream||vid.readyState<2||now-thermalLast<38)return;thermalLast=now;
     softCtx.save();softCtx.clearRect(0,0,120,90);softCtx.filter='blur(.55px)';softCtx.translate(120,0);softCtx.scale(-1,1);softCtx.drawImage(vid,0,0,120,90);softCtx.restore();
     ts.save();ts.clearRect(0,0,320,240);ts.imageSmoothingEnabled=true;ts.imageSmoothingQuality='high';ts.filter='blur(.8px)';ts.drawImage(thermalSoft,0,0,320,240);ts.restore();
@@ -65,11 +132,22 @@
   };
   const previousDrawStage=drawStage;
   drawStage=function(now){previousDrawStage(now);
+    // Restore both the centered original stage tab and its slim pink progress.
+    g.fillStyle=V.lime;g.fillRect(27,59,162,36);
+    g.save();g.fillStyle=V.ink;g.textAlign='center';g.font="900 19px 'PP Neue Machina Inktrap','DejaVu Sans',sans-serif";g.fillText('SPARK STAGE',108,85,153);g.restore();
+    const current=sessionAlbums[albumIndex],ratio=current?Math.max(0,Math.min(1,(now-trackStart)/(current.duration*1000))):0;
+    g.fillStyle='#ffd2e8';g.fillRect(32,661,934,5);
+    g.fillStyle=V.pink;g.fillRect(32,661,934*(inGap?1:ratio),5);
     // Leave the original artwork unobstructed; one quiet track label below it.
     const song=sessionAlbums[albumIndex];if(song&&state==='live'){
       T('NOW PLAYING',43,690,13,V.pink,'left','800');
       fitText(inGap?'잠시 후 다음 무대가 시작됩니다':song.artist+'  —  '+song.title,171,690,15,V.ink,650,'700');
     }
+  };
+  const previousDrawYou=drawYou;
+  drawYou=function(t){previousDrawYou(t);
+    g.fillStyle=V.pink;g.fillRect(936,157,164,33);
+    g.save();g.fillStyle='#fff';g.textAlign='center';g.font="900 19px 'PP Neue Machina Inktrap','DejaVu Sans',sans-serif";g.fillText('YOUR SPARK',1018,182,154);g.restore();
   };
 
   function playTrack(i,now){
@@ -130,7 +208,7 @@
     postRec();v30qr=null;
   };
   hostUrl=function(r){
-    const base=(LS.qrBase||((location.protocol==='https:')?new URL('record.html',location.href).href:'')).split('#')[0].trim();
+    const base=(LS.qrBase||((location.protocol==='https:')?new URL('record.html',location.href).href:DEFAULT_RECORD_URL)).split('#')[0].trim();
     return base+'#'+V.encode(r);
   };
   postRec=function(){
@@ -138,7 +216,7 @@
     rec.id=String(num).padStart(4,'0');rec.date=V.today();
     const winner=rec.artists[rec.winner];if(winner){const data=D[winner.artistId],over=songUrl(data);rec.spotify=over.spotify;rec.youtube=over.youtube;}
     try{const log=JSON.parse(LS.sparkRecs||'[]');log.push({...rec,at:Date.now()});LS.sparkRecs=JSON.stringify(log);}catch(e){console.warn('Record log is full',e);}
-    const base=(LS.qrBase||((location.protocol==='https:')?new URL('record.html',location.href).href:'')).trim();
+    const base=(LS.qrBase||((location.protocol==='https:')?new URL('record.html',location.href).href:DEFAULT_RECORD_URL)).trim();
     qrUrl=/^https:\/\/[^\s]+/i.test(base)?hostUrl(rec):'';
     state='result';resT=performance.now();
   };
@@ -167,6 +245,9 @@
     T('SPARK',52,307,79,V.pink,'left',900);
     cleanArea(54,332,400,33);
     T(meta.message,57,350,20,V.ink,'left',700);
+    // Remove the sample artwork's fixed peak label; the real peak is generated
+    // together with the smooth graph so the annotation never floats off-grid.
+    cleanArea(487,348,252,44);
     cleanArea(48,382,700,218);
     if(resultGraphId!==rec.id||!resultGraph){resultGraph=document.createElement('canvas');resultGraph.width=1050;resultGraph.height=317;V.graph(resultGraph.getContext('2d'),rec.artists,1050,317,{labels:true,peakLabel:true,labelSize:25,lineWidth:4,markerSize:16});resultGraphId=rec.id;}
     g.drawImage(resultGraph,45,378,694,214);
@@ -204,6 +285,6 @@
     volumeRow.innerHTML=`<b>출력 음량</b><span><input id="spkVolume" type="range" min="10" max="100" value="${Math.round(desiredVolume*100)}"> <b id="spkPercent">${Math.round(desiredVolume*100)}%</b></span>`;
     panel.insertBefore(volumeRow,panel.firstChild);
     volumeRow.querySelector('input').oninput=e=>{desiredVolume=Number(e.target.value)/100;LS.sparkVolumeV42=String(desiredVolume);volumeRow.querySelector('#spkPercent').textContent=e.target.value+'%';if(!playback.paused)playback.volume=desiredVolume;};
-    const qr=$('qb');if(qr&&!qr.value&&location.protocol==='https:')qr.value=new URL('record.html',location.href).href;
+    const qr=$('qb');if(qr&&!qr.value)qr.value=(location.protocol==='https:'?new URL('record.html',location.href).href:DEFAULT_RECORD_URL);
   };
 })();
