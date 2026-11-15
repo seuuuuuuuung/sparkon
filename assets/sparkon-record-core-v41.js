@@ -42,6 +42,28 @@
   function star(c,x,y,r,color=pink,rotation=0){
     c.save();c.translate(x,y);c.rotate(rotation);c.beginPath();c.moveTo(0,-r);c.bezierCurveTo(r*.18,-r*.19,r*.21,-r*.18,r,0);c.bezierCurveTo(r*.20,r*.16,r*.18,r*.19,0,r);c.bezierCurveTo(-r*.18,r*.20,-r*.18,r*.18,-r,0);c.bezierCurveTo(-r*.19,-r*.18,-r*.18,-r*.20,0,-r);const grad=c.createRadialGradient(-r*.12,-r*.12,0,0,0,r);grad.addColorStop(0,color==pink?'#ff94c5':'#ebffaf');grad.addColorStop(.55,color==pink?'#ff5fa9':'#d7ff72');grad.addColorStop(1,color);c.fillStyle=grad;c.fill();c.restore();
   }
+  function sparkAccents(c,key,cx,cy,scale=1){
+    // Small, intentional variations of the supplied four-point SPARKON spark.
+    // The principal artboard star is never replaced by unrelated geometry.
+    c.save();
+    if(key==='BURST'){
+      star(c,cx-78*scale,cy-45*scale,13*scale,lime,.2);
+      star(c,cx+82*scale,cy+58*scale,9*scale,pink,-.3);
+    }else if(key==='WAVE'){
+      c.strokeStyle=pink;c.lineWidth=Math.max(1,2.5*scale);c.lineCap='round';
+      for(let j=0;j<2;j++){
+        const y=cy+(65+j*15)*scale;
+        c.beginPath();c.moveTo(cx-90*scale,y);c.bezierCurveTo(cx-25*scale,y-27*scale,cx+12*scale,y+22*scale,cx+90*scale,y-8*scale);c.stroke();
+      }
+    }else if(key==='PULSE'){
+      [-1,1].forEach(side=>{star(c,cx+side*92*scale,cy+side*12*scale,11*scale,side<0?lime:pink,side*.3);});
+    }else if(key==='RISE'){
+      star(c,cx-78*scale,cy+67*scale,13*scale,pink,.15);
+      star(c,cx-22*scale,cy+44*scale,9*scale,lime,-.3);
+      star(c,cx+80*scale,cy-64*scale,12*scale,pink,.3);
+    }
+    c.restore();
+  }
   function perspective(c,w,h,vanishY=.1){
     c.save();c.strokeStyle='rgba(22,22,30,.073)';c.lineWidth=1;const cx=w*.56,cy=h*vanishY;
     for(let x=-w;x<w*2;x+=w/9){c.beginPath();c.moveTo(cx,cy);c.lineTo(x,h);c.stroke();}
@@ -50,39 +72,68 @@
   }
   function graph(c,rows,w,h,opts={}){
     c.save();c.clearRect(0,0,w,h);
-    const padX=opts.padX??24,top=opts.top??16,baseline=h-(opts.labels===false?18:64),innerW=w-padX*2;
-    const total=rows.reduce((s,a)=>s+(a.duration||1),0)||1;
-    const vals=[];let pos=0;const sections=[];
-    rows.forEach((r,i)=>{const duration=Number(r.duration)||1;const curve=r.curve?.length?r.curve:[0,0];sections.push({start:pos/total,end:(pos+duration)/total,row:r});curve.forEach((v,j)=>vals.push([padX+innerW*((pos+duration*j/Math.max(1,curve.length-1))/total),Number(v)||0]));pos+=duration;});
-    // A five-sample weighted curve removes the sharp saw-tooth spikes from
-    // live fist tracking while retaining the order and overall reaction peak.
-    const softened=vals.map((p,i)=>{
-      const weights=[1,2,4,2,1];let sum=0,weight=0;
-      for(let d=-2;d<=2;d++){
-        const q=vals[Math.max(0,Math.min(vals.length-1,i+d))];
-        sum+=q[1]*weights[d+2];weight+=weights[d+2];
+    const n=rows.length,padX=opts.padX??18,top=opts.top??16;
+    const hasLabels=opts.labels!==false,baseline=h-(hasLabels?59:13),innerW=w-padX*2;
+    if(!n||innerW<=0||baseline<=top){c.restore();return{peak:null};}
+    const perTrack=30,raw=[];
+    function interpolate(a,t){
+      const index=t*(a.length-1),j=Math.min(a.length-2,Math.floor(index)),u=index-j;
+      const p0=a[Math.max(0,j-1)],p1=a[j],p2=a[j+1],p3=a[Math.min(a.length-1,j+2)];
+      return Math.max(0,.5*(2*p1+(-p0+p2)*u+(2*p0-5*p1+4*p2-p3)*u*u+(-p0+3*p1-3*p2+p3)*u*u*u));
+    }
+    rows.forEach((r,i)=>{
+      const a=(r.curve?.length?r.curve:[0,0]).map(v=>Math.max(0,Math.min(6,Number(v)||0)));
+      for(let j=0;j<perTrack;j++){
+        const t=j/perTrack;
+        raw.push({x:padX+innerW*(i+t)/n,v:interpolate(a,t)});
       }
-      return[p[0],sum/weight];
     });
-    const peak=Math.max(.5,...softened.map(p=>p[1]));const points=softened.map(([x,y])=>[x,baseline-((y/peak)*Math.max(15,baseline-top-19))]);
-    function traceCurve(join=false){
-      if(!points.length)return;
-      if(join)c.lineTo(...points[0]);else c.moveTo(...points[0]);
-      for(let i=0;i<points.length-1;i++){
-        const a=points[Math.max(0,i-1)],b=points[i],d=points[i+1],e=points[Math.min(points.length-1,i+2)];
-        const dx=Math.max(0,d[0]-b[0]),limitY=n=>Math.max(top,Math.min(baseline,n));
-        c.bezierCurveTo(b[0]+dx/3,limitY(b[1]+(d[1]-a[1])*.16),d[0]-dx/3,limitY(d[1]-(e[1]-b[1])*.16),d[0],d[1]);
+    raw.push({x:padX+innerW,v:Math.max(0,Number(rows[n-1].curve?.at(-1))||0)});
+    // Smooth across track boundaries as one continuous reaction timeline.
+    // This avoids the zero-width double point and vertical spikes in v44.
+    const kernel=[1,2,3,4,5,4,3,2,1];
+    const smoothed=raw.map((p,i)=>{
+      let weighted=0,sum=0;
+      for(let k=-4;k<=4;k++){const j=Math.max(0,Math.min(raw.length-1,i+k)),weight=kernel[k+4];weighted+=raw[j].v*weight;sum+=weight;}
+      return{x:p.x,v:weighted/sum};
+    });
+    const maximum=Math.max(.42,...smoothed.map(p=>p.v));
+    const room=Math.max(8,baseline-top-22);
+    const pts=smoothed.map(p=>[p.x,baseline-(p.v/maximum)*room]);
+    function trace(join=false){
+      if(join)c.lineTo(pts[0][0],pts[0][1]);else c.moveTo(pts[0][0],pts[0][1]);
+      for(let i=0;i<pts.length-1;i++){
+        const prev=pts[Math.max(0,i-1)],a=pts[i],b=pts[i+1],next=pts[Math.min(pts.length-1,i+2)];
+        const dx=b[0]-a[0],s0=(b[1]-prev[1])/(b[0]-prev[0]||1),s1=(next[1]-a[1])/(next[0]-a[0]||1);
+        const lo=Math.min(a[1],b[1]),hi=Math.max(a[1],b[1]),limit=y=>Math.min(hi,Math.max(lo,y));
+        c.bezierCurveTo(a[0]+dx/3,limit(a[1]+s0*dx/3),b[0]-dx/3,limit(b[1]-s1*dx/3),b[0],b[1]);
       }
     }
-    if(points.length){
-      const area=c.createLinearGradient(0,top,0,baseline);
-      area.addColorStop(0,'rgba(237,57,146,.32)');area.addColorStop(1,'rgba(237,57,146,0)');
-      c.beginPath();c.moveTo(points[0][0],baseline);traceCurve(true);c.lineTo(points[points.length-1][0],baseline);c.closePath();c.fillStyle=area;c.fill();
-      c.beginPath();traceCurve();c.strokeStyle=pink;c.lineWidth=opts.lineWidth||4;c.lineCap='round';c.lineJoin='round';c.stroke();
+    const fill=c.createLinearGradient(0,top,0,baseline);
+    fill.addColorStop(0,'rgba(237,57,146,.26)');fill.addColorStop(1,'rgba(237,57,146,0)');
+    c.beginPath();c.moveTo(pts[0][0],baseline);trace(true);c.lineTo(pts[pts.length-1][0],baseline);c.closePath();c.fillStyle=fill;c.fill();
+    c.beginPath();trace();c.lineWidth=opts.lineWidth||3;c.lineJoin='round';c.lineCap='round';c.strokeStyle=pink;c.stroke();
+    const high=smoothed.reduce((best,p,i)=>p.v>smoothed[best].v?i:best,0);
+    if(smoothed[high].v>.15&&opts.markerSize!==0){const p=pts[high];star(c,p[0],p[1],opts.markerSize??10,pink,.12);}
+    if(hasLabels){
+      c.textAlign='center';
+      const slot=innerW/n;
+      rows.forEach((r,i)=>{
+        const mid=padX+slot*(i+.5),maxWidth=slot-12,artist=r.artist||r.name||'',song=r.title||r.song||'';
+        function label(text,y,initial,min,color,weight,family){
+          let size=initial;c.fillStyle=color;
+          do{c.font=`${weight} ${size}px ${family}`;if(c.measureText(text).width<=maxWidth||size<=min)break;size-=.5;}while(true);
+          c.fillText(text,mid,y);
+        }
+        label(artist,h-31,opts.labelSize||16,10,ink,800,"'PP Neue Machina Inktrap','Pretendard',Arial,sans-serif");
+        label(song,h-10,Math.max(11,(opts.labelSize||16)-1),9,pink,600,"'PP Palma','Pretendard',Arial,sans-serif");
+      });
     }
-    const highIndex=vals.findIndex(p=>p[1]===Math.max(...vals.map(v=>v[1])));if(highIndex>=0&&vals[highIndex][1]>.15){const p=points[highIndex];star(c,p[0],p[1],opts.markerSize||14);if(opts.peakLabel){c.fillStyle=pink;c.font=`700 ${opts.labelSize||17}px 'Paperlogy',sans-serif`;c.fillText('나의 스파크 순간',Math.min(w-206,p[0]+19),Math.max(24,p[1]-18));}}
-    sections.forEach((s,i)=>{const x=padX+innerW*s.end;if(i<sections.length-1){c.strokeStyle='#dcdce2';c.lineWidth=1;c.beginPath();c.moveTo(x,top+7);c.lineTo(x,h-(opts.labels===false?8:7));c.stroke();}if(opts.labels!==false){const mid=padX+innerW*(s.start+s.end)/2;c.textAlign='center';const artist=s.row.artist||s.row.name||'';const song=s.row.title||s.row.song||'';const labelSize=opts.labelSize||17;c.fillStyle=ink;c.font=`800 ${labelSize}px 'PP Neue Machina Inktrap', 'Pretendard',sans-serif`;c.fillText(artist,mid,h-32,innerW*(s.end-s.start)-9);c.fillStyle=pink;c.font=`700 ${Math.max(11,labelSize-2)}px 'Paperlogy', 'Pretendard',sans-serif`;c.fillText(song,mid,h-10,innerW*(s.end-s.start)-9);}});c.restore();
-    return{peak:highIndex>=0?{x:points[highIndex][0],y:points[highIndex][1]}:null};
+    for(let i=1;i<n;i++){
+      const x=padX+innerW*i/n;c.strokeStyle='rgba(80,80,86,.15)';c.lineWidth=.75;
+      c.beginPath();c.moveTo(x,top+5);c.lineTo(x,h-(hasLabels?4:5));c.stroke();
+    }
+    c.restore();return{peak:{x:pts[high][0],y:pts[high][1]}};
   }
-  root.SPARKON_V41={pink,lime,ink,types,today,classification,strength,best,encode,decode,star,perspective,graph,round};
+  root.SPARKON_V41={pink,lime,ink,types,today,classification,strength,best,encode,decode,star,sparkAccents,perspective,graph,round};
 })(window);

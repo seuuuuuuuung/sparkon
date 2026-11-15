@@ -1,4 +1,4 @@
-/* SPARKON v44 mobile record: preserved original art, photo and clean type. */
+/* SPARKON v45 mobile record: original identity, clearer reaction graph and type. */
 (() => {
   'use strict';
   const $=id=>document.getElementById(id),V=window.SPARKON_V41,D=window.SPARKON_DATA;
@@ -21,6 +21,18 @@
   const spotifyId=/^[A-Za-z0-9]{22}$/.test(record.spotifyId||'')?record.spotifyId:artist.spotify;
   const label=type.label.split(' ');
   $('typeName').innerHTML='<span>'+label[0]+'</span><span>SPARK</span>';
+  // Four compositions made from the same original SPARKON four-point spark;
+  // no foreign icon or unrelated decorative illustration is introduced.
+  const motif='M100 0 C116 68 130 84 200 100 C130 116 116 130 100 200 C84 130 68 116 0 100 C68 84 84 68 100 0Z';
+  const spark=(x,y,scale,rotate=0,fill='url(#starFill)',opacity=1)=>`<g opacity="${opacity}" transform="translate(${x} ${y}) rotate(${rotate}) scale(${scale}) translate(-100 -100)"><path fill="${fill}" d="${motif}"/></g>`;
+  const defs='<defs><radialGradient id="starFill" cx="34%" cy="27%"><stop offset="0%" stop-color="#ffb1d2"/><stop offset="55%" stop-color="#ff67b1"/><stop offset="100%" stop-color="#ed3992"/></radialGradient></defs>';
+  const graphics={
+    BURST:spark(106,101,.88,-8)+spark(160,40,.12,12,'#c0fb31')+spark(45,162,.10,-18),
+    WAVE:spark(109,95,.81,13)+'<path d="M0 158 C51 122 78 181 136 149 S196 126 211 143" fill="none" stroke="#ed3992" stroke-width="2.5"/><path d="M-3 173 C50 139 83 193 143 163 S193 142 210 156" fill="none" stroke="#c0fb31" stroke-width="2"/>',
+    PULSE:spark(100,101,1.0,0,'#ed3992',.11)+spark(100,101,.71,0)+spark(28,111,.115,-15,'#c0fb31')+spark(176,91,.105,12),
+    RISE:spark(48,148,.38,-14)+spark(123,108,.52,9)+spark(171,45,.22,14,'#c0fb31')
+  };
+  $('variantSpark').innerHTML=defs+(graphics[record.sparkType]||graphics.PULSE);
   $('typeMessage').textContent=type.message;
   $('topDate').textContent=record.date;
   $('artistName').textContent=artist.name;
@@ -46,17 +58,18 @@
   function sizeCanvas(c,w,h){const dpr=Math.min(2,window.devicePixelRatio||1);c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);c.style.width=w+'px';c.style.height=h+'px';const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);return x;}
   function redraw(){
     const chart=$('graph'),width=chart.getBoundingClientRect().width,height=parseFloat(getComputedStyle(chart).height)||215;
-    if(width>0)V.graph(sizeCanvas(chart,width,height),record.artists,width,height,{labels:true,labelSize:Math.max(9,Math.min(15,width/30)),markerSize:11,lineWidth:3});
-    // Perspective lines now converge toward a single poster-style vanishing
-    // point and disappear as the record content starts (no second loose grid).
+    if(width>0)V.graph(sizeCanvas(chart,width,height),record.artists,width,height,{labels:true,labelSize:Math.max(11,Math.min(15,width/29)),markerSize:9,lineWidth:2.8,padX:8,top:12});
+    // One lightly printed perspective grid. Lines converge at a single point,
+    // following the source poster's construction rather than forming a fan of
+    // unrelated line clusters behind the record typography.
     const grid=$('perspective'),gw=grid.parentElement.getBoundingClientRect().width,context=sizeCanvas(grid,gw,590);
-    const vx=gw*.51,vy=282;
-    context.strokeStyle='rgba(35,35,41,.075)';context.lineWidth=.7;
-    for(let ex=-gw*2;ex<=gw*3;ex+=gw/8){context.beginPath();context.moveTo(vx,vy);context.lineTo(ex,-320);context.stroke();}
-    context.strokeStyle='rgba(35,35,41,.045)';
-    for(let ex=-gw*2;ex<=gw*3;ex+=gw/8){context.beginPath();context.moveTo(vx,vy);context.lineTo(ex,590);context.stroke();}
-    for(let yy=48;yy<355;yy+=58){context.beginPath();context.moveTo(0,yy);context.lineTo(gw,yy);context.stroke();}
-    const fade=context.createLinearGradient(0,170,0,520);fade.addColorStop(0,'rgba(255,255,255,0)');fade.addColorStop(1,'#ffffff');context.fillStyle=fade;context.fillRect(0,170,gw,420);
+    const vx=gw*.5,vy=Math.min(205,gw*.31);
+    context.strokeStyle='rgba(45,45,52,.055)';context.lineWidth=.65;
+    for(let ex=-gw*1.5;ex<=gw*2.5;ex+=gw/4.5){context.beginPath();context.moveTo(vx,vy);context.lineTo(ex,-110);context.stroke();}
+    context.strokeStyle='rgba(45,45,52,.038)';
+    for(let ex=-gw*1.5;ex<=gw*2.5;ex+=gw/4.5){context.beginPath();context.moveTo(vx,vy);context.lineTo(ex,475);context.stroke();}
+    for(const yy of [48,128,216,310]){context.beginPath();context.moveTo(0,yy);context.lineTo(gw,yy);context.stroke();}
+    const fade=context.createLinearGradient(0,180,0,490);fade.addColorStop(0,'rgba(255,255,255,0)');fade.addColorStop(1,'#ffffff');context.fillStyle=fade;context.fillRect(0,180,gw,410);
   }
   window.addEventListener('resize',redraw,{passive:true});redraw();
   if(window.ResizeObserver)new ResizeObserver(redraw).observe($('graph').parentElement);
@@ -92,9 +105,10 @@
       x.drawImage(plate,700,0,120,340,700,0,120,340);
       x.drawImage(plate,820,0,260,440,820,0,260,440);
     }
+    V.sparkAccents(x,record.sparkType,825,227,.52);
     // The original lime skewed song tab is left untouched.
     clear(94,570,522,60);
-    typography(x,'나를 움직이게 만든 '+artist.name+'의 노래',99,606,27,V.ink,850,'ko',518);
+    typography(x,'나를 움직이게 만든 '+artist.name+'의 노래',99,606,27,V.ink,700,'ko',518);
     x.fillStyle=V.lime;x.beginPath();x.moveTo(683,557);x.lineTo(981,557);x.lineTo(945,625);x.lineTo(680,625);x.closePath();x.fill();
     x.textAlign='center';typography(x,artist.song.toUpperCase(),833,605,43,V.ink,900,'display',250);x.textAlign='left';
     const bx=103,by=663,bw=875,bh=519;
@@ -116,8 +130,9 @@
     x.fillStyle='#fff';x.fillRect(123,1197,295,50);
     x.save();
     x.fillStyle=V.pink;
-    x.font="italic 900 37px 'PP Neue Machina Inktrap','Pretendard',Arial,sans-serif";
-    x.fillText(type.label,129,1234,286);
+    let typeSize=36;
+    do{x.font=`italic 800 ${typeSize}px 'PP Neue Machina Inktrap','Pretendard',Arial,sans-serif`;if(x.measureText(type.label).width<=221||typeSize<=23)break;typeSize-=1;}while(true);
+    x.fillText(type.label,129,1234);
     x.strokeStyle=V.pink;x.lineWidth=2;x.beginPath();x.moveTo(357,1241);x.lineTo(393,1204);x.stroke();
     x.restore();
     x.strokeStyle='#ece9ee';x.lineWidth=1;x.beginPath();x.moveTo(101,1352);x.lineTo(979,1352);x.stroke();

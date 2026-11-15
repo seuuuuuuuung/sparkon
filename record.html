@@ -62,6 +62,17 @@ main{max-width:653px;padding:0 9.2% 54px}
  .note{font-size:clamp(11px,2.2vw,14px)}.metadata{margin-top:9vw}
 }
 </style>
+<style>
+/* v45: strict two-line calls to action, readable labels, and more breathing room. */
+.action-copy{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px}
+.action-hint,.action-title{display:block;width:100%;text-align:center;white-space:normal}
+.action-hint{font-weight:600;line-height:1.4}
+.action-title{font-weight:800;line-height:1.32;overflow-wrap:break-word}
+.type-hero h2,.artist-name{font-weight:900}
+.type-message{font-weight:650}
+.hook{font-weight:680}
+@media(max-width:520px){.action-copy{gap:6px}.action-hint{font-size:clamp(10px,2.35vw,13px)}.action-title{font-size:clamp(12px,2.9vw,16px)}.action{min-height:21vw}.action-stack{gap:4.5vw}}
+</style>
 </head>
 <body>
 <main>
@@ -70,7 +81,7 @@ main{max-width:653px;padding:0 9.2% 54px}
   <div id="content" hidden>
     <header class="top"><img class="logo" src="./assets/logo.png" alt="SPARKON"><h1>MY FIRST SPARK RECORD</h1></header>
     <div class="record-label"><span>YOUR SPARK, FINALLY LIVE.</span><span id="topDate"></span></div>
-    <section class="type-hero" aria-label="나의 스파크 유형"><h2 id="typeName"><span>BURST</span><span>SPARK</span></h2><svg class="hero-spark" viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="starFill" cx="34%" cy="27%"><stop offset="0%" stop-color="#ffb1d2"/><stop offset="55%" stop-color="#ff67b1"/><stop offset="100%" stop-color="#ed3992"/></radialGradient></defs><path fill="url(#starFill)" d="M100 0 C116 68 130 84 200 100 C130 116 116 130 100 200 C84 130 68 116 0 100 C68 84 84 68 100 0Z"/></svg><p class="type-message" id="typeMessage"></p></section>
+    <section class="type-hero" aria-label="나의 스파크 유형"><h2 id="typeName"><span>BURST</span><span>SPARK</span></h2><svg id="variantSpark" class="hero-spark" viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="starFill" cx="34%" cy="27%"><stop offset="0%" stop-color="#ffb1d2"/><stop offset="55%" stop-color="#ff67b1"/><stop offset="100%" stop-color="#ed3992"/></radialGradient></defs><path fill="url(#starFill)" d="M100 0 C116 68 130 84 200 100 C130 116 116 130 100 200 C84 130 68 116 0 100 C68 84 84 68 100 0Z"/></svg><p class="type-message" id="typeMessage"></p></section>
     <section class="graph-section"><div class="section-cap">MY SPARK MOMENT</div><div class="graph-shell"><canvas id="graph" role="img" aria-label="세 곡의 반응을 순서대로 보여주는 그래프"></canvas></div><div class="graph-foot"><span>3 TRACKS / LIVE REACTIONS</span><strong>✦ 가장 반응이 컸던 순간</strong></div></section>
     <div class="divider"></div>
     <section class="artist-section"><div class="section-cap">THE ARTIST THAT MOVED ME</div><h3 style="margin-top:30px">오늘, 내 마음을 움직인 아티스트</h3><h2 class="artist-name" id="artistName"></h2><p class="hook" id="artistHook"></p><div class="song-tag"><span class="track-label">MY FIRST SPARK TRACK</span><span class="song-name" id="songName"></span></div><div class="poster-thumb"><img id="artistVisual" alt="아티스트 이미지" loading="lazy"></div><p class="description" id="artistDescription"></p></section>
