@@ -1,0 +1,21 @@
+SPARKON MUSIC FESTIVAL — CONCERT SPACE AUDIO
+
+8 provided highlight clips. STRONG CONCERT VERSION v02. Stereo MP3, 320 kbps.
+Source timings retained. No auto-panning, added crowd noise, or altered pitch/tempo.
+A natural sounding concert space is suggested with asymmetrical early
+reflections and a wide, decorrelated late hall tail. Strong centered
+lead vocals and bass stay in the original dry foreground.
+All files are ready for headphones; test on the exhibit headset.
+
+Mix parameters:
+{
+  "hall_t60_s": 1.95,
+  "predelay_ms": 75,
+  "early_reflection_rms_ratio": 0.3,
+  "diffuse_hall_rms_ratio": 0.36,
+  "wet_lowcut_hz": 290,
+  "wet_highcut_hz": 6500,
+  "stereo_width_of_dry": 1.0,
+  "pan_motion": false,
+  "preserve_excerpt_duration": true
+}
