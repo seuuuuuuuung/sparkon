@@ -1,5 +1,5 @@
-SPARKON — MY FIRST SPARK RECORD v49
-2026.11.16 수정본 / 웹 기록지 그룹 중앙 정렬, 최고점 원형 표시, 저장용 이미지 사진·곡 레이블 조정
+SPARKON — MY FIRST SPARK RECORD v50
+2026.11.16 수정본 / 모바일 헤더 간격 및 원본 스파크 요소 복원
 
 [실행]
 1. ZIP 압축을 해제하고 폴더 구조를 유지합니다.
@@ -25,7 +25,7 @@ SPARKON — MY FIRST SPARK RECORD v49
 - 가장 반응이 높았던 아티스트 한 팀이 선정되며, 그 아티스트의 소개/곡/추천 영상/Spotify 버튼으로 연결합니다.
 - 4개 기록 유형: BURST / WAVE / PULSE / RISE SPARK.
 - 웹 기록 화면: 원본 아트보드에 유형+멘트+3곡 실제 반응을 끊기지 않는 곡선 그래프+대표 아티스트+QR을 표기합니다. '나의 스파크 순간'은 원본 이미지의 고정 글자와 선을 지우고 Paperlogy 17px로 다시 그려, 그래프의 실제 최고 반응점 옆에 위치하도록 했습니다. 최고점은 분홍색 테두리 원으로 표시합니다. '오늘, 내 마음을 움직인 아티스트 [아티스트명]' 전체를 하나의 그룹으로 계산해 그래프 가로 중심에 정렬합니다. 오른쪽 60초 복귀 안내의 대괄호는 제거했습니다. 큰 핑크 스파크 및 원본 소실점 그리드는 유지합니다.
-- 모바일 기록 화면: 전달해 준 세로 디자인의 여백과 문구·컬러·배치를 유지하면서, 결과 유형별로 원래 스파크 그래픽의 조합을 바꿉니다. 반응 그래프는 매끄러운 3곡 곡선이며, 버튼의 안내 문구와 영상 타이틀은 위아래 별도 줄로 표시합니다. 실제 Paperlogy·PP Neue Machina Inktrap·PP Palma 글꼴을 사용하고, 아티스트 단체 사진은 비율을 유지한 cover 크롭으로 프레임을 빈 공간 없이 채웁니다. 세로로 잘리는 부분은 얼굴이 보이도록 상단을 우선합니다.
+- 모바일 기록 화면: 로고 레터링 아래 MY FIRST SPARK RECORD 제목까지의 간격을 약 18px 확대했습니다. 기존 코드에서 임의로 그린 SVG 스파크/그라데이션/작은 보조 별을 모두 제거하고, 사용자가 제공한 record_web_reference.png의 실제 핑크 스파크 그래픽을 직접 잘라 보여주는 SVG 뷰포트로 교체했습니다. WAVE 유형에 붙어 있던 그래픽 아래 평행 물결선 두 개도 완전히 제거했습니다. 원본 스파크는 재작도하거나 생성하지 않습니다. 반응 그래프·버튼 구성·실제 디자인 폰트·사진 비율 유지 기능은 기존대로 보존합니다.
 - 다운로드용 PNG: 전달해 준 1080×1701 원본 아트보드의 로고·핑크 스파크·그리드·라임 곡 레이블을 유지하고, 결과 데이터·곡선 반응 그래프·날짜·단체사진을 채워 생성합니다. WAVE 유형의 스파크 옆 불필요한 평행 물결선 2개를 제거했습니다. 라임 곡 제목 배경은 실제 서체로 측정한 제목 길이에 따라 좌측으로 확대되되, 우측 경계 x=980을 넘지 않습니다. 원본의 고정 배경을 완전히 지운 후 새 레이블을 중앙 정렬합니다. 단체사진은 비율을 유지한 cover 크롭으로 회색 여백 없이 프레임 전체를 채웁니다.
 - 날짜는 체험한 기기의 실제 현지 날짜를 기록합니다. No.XXXX는 해당 기기에서 순번을 부여합니다.
 - 기존 MediaPipe 손 인식, 관리자 권한, 전체화면, 기록 JSON 내보내기 기능 유지.
@@ -38,7 +38,7 @@ DAY 02  NEXZ / O-RLY? | MEOVV / GO HARD | CRAVITY / Ready or Not | KISS OF LIFE 
 [QR / 모바일 배포 주의]
 반드시 index.html, record.html, assets 폴더를 함께 보존해야 합니다.
 모바일에서 사용할 record.html과 assets/sparkon-data.js, assets/sparkon-record-core-v41.js,
-assets/sparkon-mobile-v41.js, assets/logo.png 등을 HTTPS 웹사이트(GitHub Pages 등)에 함께 배포합니다.
+assets/sparkon-mobile-v41.js, assets/logo.png, assets/record_web_reference.png 등을 HTTPS 웹사이트(GitHub Pages 등)에 함께 배포합니다.
 전시 컴퓨터의 관리자 > QR 주소에 해당 사이트의 전체 record.html URL을 입력합니다.
 사용 중인 GitHub Pages: https://seuuuuuuuung.github.io/sparkon/record.html
 **같은 저장소의 /sparkon/ 경로를 유지한다면 위 QR 링크를 그대로 사용합니다.**

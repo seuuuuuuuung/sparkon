@@ -1,4 +1,4 @@
-/* SPARKON v49 mobile record: fitted dynamic song tag, full-bleed portraits. */
+/* SPARKON v50 mobile record: exact original SPARKON spark, refined header. */
 (() => {
   'use strict';
   const $=id=>document.getElementById(id),V=window.SPARKON_V41,D=window.SPARKON_DATA;
@@ -21,18 +21,10 @@
   const spotifyId=/^[A-Za-z0-9]{22}$/.test(record.spotifyId||'')?record.spotifyId:artist.spotify;
   const label=type.label.split(' ');
   $('typeName').innerHTML='<span>'+label[0]+'</span><span>SPARK</span>';
-  // Four compositions made from the same original SPARKON four-point spark;
-  // no foreign icon or unrelated decorative illustration is introduced.
-  const motif='M100 0 C116 68 130 84 200 100 C130 116 116 130 100 200 C84 130 68 116 0 100 C68 84 84 68 100 0Z';
-  const spark=(x,y,scale,rotate=0,fill='url(#starFill)',opacity=1)=>`<g opacity="${opacity}" transform="translate(${x} ${y}) rotate(${rotate}) scale(${scale}) translate(-100 -100)"><path fill="${fill}" d="${motif}"/></g>`;
-  const defs='<defs><radialGradient id="starFill" cx="34%" cy="27%"><stop offset="0%" stop-color="#ffb1d2"/><stop offset="55%" stop-color="#ff67b1"/><stop offset="100%" stop-color="#ed3992"/></radialGradient></defs>';
-  const graphics={
-    BURST:spark(106,101,.88,-8)+spark(160,40,.12,12,'#c0fb31')+spark(45,162,.10,-18),
-    WAVE:spark(109,95,.81,13)+'<path d="M0 158 C51 122 78 181 136 149 S196 126 211 143" fill="none" stroke="#ed3992" stroke-width="2.5"/><path d="M-3 173 C50 139 83 193 143 163 S193 142 210 156" fill="none" stroke="#c0fb31" stroke-width="2"/>',
-    PULSE:spark(100,101,1.0,0,'#ed3992',.11)+spark(100,101,.71,0)+spark(28,111,.115,-15,'#c0fb31')+spark(176,91,.105,12),
-    RISE:spark(48,148,.38,-14)+spark(123,108,.52,9)+spark(171,45,.22,14,'#c0fb31')
-  };
-  $('variantSpark').innerHTML=defs+(graphics[record.sparkType]||graphics.PULSE);
+  // Use the exact original four-point spark directly from the supplied web
+  // record artwork. The SVG is only a crop viewport around the source image:
+  // no traced path, remade gradient, or extra WAVE squiggle lines are drawn.
+  // Its image node is fixed in record.html so it does not depend on JS timing.
   $('typeMessage').textContent=type.message;
   $('topDate').textContent=record.date;
   $('artistName').textContent=artist.name;

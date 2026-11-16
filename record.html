@@ -28,12 +28,12 @@
 main{max-width:653px;padding:0 9.2% 54px}
 #perspective{height:550px;opacity:.53}
 .top{padding:119px 0 91px}
-.logo{width:165px;margin:0 auto -4px;mix-blend-mode:multiply}
+.logo{width:165px;margin:0 auto 18px;mix-blend-mode:multiply}
 .top h1{font-size:21px;letter-spacing:-.035em;line-height:1.07}
 .record-label,.section-cap,.graph-foot,.song-tag,.description,.footerline{display:none!important}
 .type-hero{margin-top:0;min-height:256px}
 .type-hero h2{font-size:clamp(54px,13.8vw,90px);letter-spacing:-.048em;line-height:.94}
-.hero-spark{width:240px;height:240px;right:-94px;top:-39px;transform:rotate(-13deg)}
+.hero-spark{width:240px;height:240px;right:-94px;top:-39px;transform:none;filter:none;mix-blend-mode:multiply}
 .type-message{font-size:17px;line-height:1.3;font-weight:800;letter-spacing:-.035em;margin-top:8px}
 .graph-section{margin-top:47px}
 .graph-shell{margin-top:0}
@@ -60,7 +60,7 @@ main{max-width:653px;padding:0 9.2% 54px}
 .note{color:#111;font-size:14px;font-weight:650;line-height:1.5;margin:25px 0 0}
 .metadata{margin-top:61px;border-top:0;font-size:12px;justify-content:flex-start;gap:21px}
 @media(max-width:520px){
- .top{padding-top:19vw;padding-bottom:15vw}.logo{width:29vw;min-width:110px}.top h1{font-size:clamp(15px,3.5vw,21px)}
+ .top{padding-top:19vw;padding-bottom:15vw}.logo{width:29vw;min-width:110px;margin-bottom:clamp(13px,3.5vw,18px)}.top h1{font-size:clamp(15px,3.5vw,21px)}
  .type-hero{min-height:42vw}.type-hero h2{font-size:13.8vw}.hero-spark{width:40vw;height:40vw;right:-15vw;top:-5vw}
  .type-message{font-size:clamp(12px,2.6vw,17px)}.graph-section{margin-top:5vw}#graph{height:33vw}
  .divider{margin:8vw -5px 10vw}.artist-name{font-size:9.5vw;margin-bottom:3.3vw}.hook{font-size:clamp(12px,2.8vw,18px);margin-bottom:4vw}
@@ -89,7 +89,7 @@ main{max-width:653px;padding:0 9.2% 54px}
   <div id="content" hidden>
     <header class="top"><img class="logo" src="./assets/logo.png" alt="SPARKON"><h1>MY FIRST SPARK RECORD</h1></header>
     <div class="record-label"><span>YOUR SPARK, FINALLY LIVE.</span><span id="topDate"></span></div>
-    <section class="type-hero" aria-label="나의 스파크 유형"><h2 id="typeName"><span>BURST</span><span>SPARK</span></h2><svg id="variantSpark" class="hero-spark" viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="starFill" cx="34%" cy="27%"><stop offset="0%" stop-color="#ffb1d2"/><stop offset="55%" stop-color="#ff67b1"/><stop offset="100%" stop-color="#ed3992"/></radialGradient></defs><path fill="url(#starFill)" d="M100 0 C116 68 130 84 200 100 C130 116 116 130 100 200 C84 130 68 116 0 100 C68 84 84 68 100 0Z"/></svg><p class="type-message" id="typeMessage"></p></section>
+    <section class="type-hero" aria-label="나의 스파크 유형"><h2 id="typeName"><span>BURST</span><span>SPARK</span></h2><svg id="variantSpark" class="hero-spark" viewBox="586 170 294 340" aria-hidden="true" preserveAspectRatio="xMidYMid meet"><image href="./assets/record_web_reference.png" x="0" y="0" width="2048" height="1152" preserveAspectRatio="none"/></svg><p class="type-message" id="typeMessage"></p></section>
     <section class="graph-section"><div class="section-cap">MY SPARK MOMENT</div><div class="graph-shell"><canvas id="graph" role="img" aria-label="세 곡의 반응을 순서대로 보여주는 그래프"></canvas></div><div class="graph-foot"><span>3 TRACKS / LIVE REACTIONS</span><strong>✦ 가장 반응이 컸던 순간</strong></div></section>
     <div class="divider"></div>
     <section class="artist-section"><div class="section-cap">THE ARTIST THAT MOVED ME</div><h3 style="margin-top:30px">오늘, 내 마음을 움직인 아티스트</h3><h2 class="artist-name" id="artistName"></h2><p class="hook" id="artistHook"></p><div class="song-tag"><span class="track-label">MY FIRST SPARK TRACK</span><span class="song-name" id="songName"></span></div><div class="poster-thumb"><img id="artistVisual" alt="아티스트 이미지" loading="lazy"></div><p class="description" id="artistDescription"></p></section>
