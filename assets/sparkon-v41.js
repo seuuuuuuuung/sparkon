@@ -1,9 +1,9 @@
-/* v47 — native-resolution original guide, peak-attached record annotation. */
+/* v49 — optically centered record caption, circled peak marker. */
 (() => {
   'use strict';
   const D=window.SPARKON_DATA,V=window.SPARKON_V41;
   if(!D||!V){console.error('SPARKON v41 data missing');return;}
-  const GAP=1350,FADE=450;
+  const GAP=1000,FADE=450;
   const DEFAULT_RECORD_URL='https://seuuuuuuuung.github.io/sparkon/record.html';
   let trackStart=0,gapStart=0,inGap=false,resultGraph=null,resultGraphId='',resultGraphPeak=null,playlistOverrides={};
   try{playlistOverrides=JSON.parse(LS.sparkPlaylistV41||'{}')||{};}catch{}
@@ -284,44 +284,65 @@
     fitText(meta.message,57,354,18,V.ink,398,800);
     // The large source star is left exactly as supplied.  Extra ribbons on
     // top of it made the supposedly original composition look incorrect.
-    // Replace the old FOUR-track chart, but KEEP the original caption intact.
-    // The original caption contains the exact source-design typeface. Its old
-    // leader is erased separately because its peak no longer matches 3 tracks.
+    // The marker title follows the actual live peak instead of remaining at
+    // the static example image's old peak coordinates.
     cleanWithSourceGrid(48,383,698,220);
-    cleanWithSourceGrid(475,365,59,39);
+    cleanWithSourceGrid(473,339,263,64);
     if(resultGraphId!==rec.id||!resultGraph){
       resultGraph=document.createElement('canvas');resultGraph.width=1050;resultGraph.height=312;
-      const graphResult=V.graph(resultGraph.getContext('2d'),rec.artists,1050,312,{labels:true,labelSize:24,lineWidth:3.4,markerSize:10,padX:6,top:14});
+      const graphResult=V.graph(resultGraph.getContext('2d'),rec.artists,1050,312,{labels:true,labelSize:24,artistBottom:38,songBottom:8,lineWidth:3.4,markerSize:0,padX:6,top:14});
       resultGraphPeak=graphResult?.peak||null;resultGraphId=rec.id;
     }
     g.drawImage(resultGraph,49,392,692,207);
     if(resultGraphPeak){
       const px=49+resultGraphPeak.x*692/1050,py=392+resultGraphPeak.y*207/312;
-      g.save();g.strokeStyle=V.pink;g.lineWidth=1.55;g.lineCap='square';g.beginPath();
-      if(px<550){g.moveTo(px,py-4);g.lineTo(516,370);g.lineTo(533,370);}
-      else{g.moveTo(px,py-4);g.lineTo(px,385);g.lineTo(Math.max(538,Math.min(649,px-12)),380);}
-      g.stroke();g.restore();
+      const caption='나의 스파크 순간',size=17,side=px<480?'right':'left';
+      g.save();g.font=`700 ${size}px 'Paperlogy','Pretendard',sans-serif`;
+      const cw=g.measureText(caption).width;
+      const cx=Math.max(63,Math.min(718-cw,side==='right'?px+28:px-cw-28));
+      const cy=Math.max(374,Math.min(516,py-43)),leaderY=cy+9;
+      g.strokeStyle=V.pink;g.lineWidth=1.45;g.lineCap='square';g.beginPath();
+      g.moveTo(px,py-9);
+      if(side==='right'){g.lineTo(px+15,leaderY);g.lineTo(cx-6,leaderY);}
+      else{g.lineTo(px-15,leaderY);g.lineTo(cx+cw+6,leaderY);}
+      g.stroke();g.fillStyle=V.pink;g.fillText(caption,cx,cy);
+      // A crisp open circle identifies the actual reaction peak; the rest of
+      // the curve remains uninterrupted and no unrelated symbol is inserted.
+      g.beginPath();g.arc(px,py,7.2,0,Math.PI*2);g.fillStyle='#fff';g.fill();
+      g.strokeStyle=V.pink;g.lineWidth=2;g.stroke();g.restore();
     }
     const selected=rec.artists[rec.winner],artist=selected&&D[selected.artistId];
     cleanArea(178,608,552,61);
     const sentence='오늘, 내 마음을 움직인 아티스트';
-    T(sentence,190,649,17,V.ink,'left',600);
+    const winnerName=artist?artist.name:'다음 스파크를 찾아보세요';
+    // Center the sentence + selected artist AS ONE optical group, with the
+    // precise center aligned to the plotted graph rather than to the screen.
     g.save();g.font=`600 17px ${face(sentence)}`;
-    const nameStart=Math.max(433,190+g.measureText(sentence).width+22);
+    const introWidth=g.measureText(sentence).width;
+    const labelGap=19,graphLeft=49,graphWidth=692,maxWidth=graphWidth-16;
+    let winnerSize=33,winnerWidth=0;
+    while(winnerSize>=19){g.font=`700 ${winnerSize}px ${face(winnerName)}`;
+      winnerWidth=g.measureText(winnerName).width;
+      if(introWidth+labelGap+winnerWidth<=maxWidth)break;
+      winnerSize-=.5;
+    }
+    const groupWidth=introWidth+labelGap+winnerWidth;
+    const groupStart=graphLeft+(graphWidth-groupWidth)/2;
     g.restore();
-    fitText(artist?artist.name:'다음 스파크를 찾아보세요',nameStart,650,33,V.pink,Math.max(95,711-nameStart),700);
+    T(sentence,groupStart,649,17,V.ink,'left',600);
+    T(winnerName,groupStart+introWidth+labelGap,650,winnerSize,V.pink,'left',700);
     qrDraw(899,291,216);
     cleanArea(949,516,154,22);
     T('MY SPARK ID  #'+rec.id,1022,529,11,'#888','center',700);
     g.fillStyle='#f4f3f5';g.beginPath();g.roundRect(898,574,219,93,45);g.fill();
-    T('['+Math.ceil(remaining)+']초 후',1008,626,29,'#aaa5f6','center',900);
+    T(Math.ceil(remaining)+'초 후',1008,626,29,'#aaa5f6','center',900);
     T('처음 화면으로 돌아갑니다.',1008,647,13,'#aaa5f6','center',600);
   };
 
   // Retain the existing permission, debug, fullscreen and record-export controls.
   renderAdmin=async function(){
     await baseAdmin();const panel=document.createElement('section');
-    panel.innerHTML='<h3>8팀 하이라이트 · 매회 랜덤 3팀</h3><p>8곡은 모두 기본 탑재되어 있으며 한 번의 체험에서 3곡만 재생합니다. 각 곡 14.8~28.4초, 곡 사이 1.35초 공백.</p>';
+    panel.innerHTML='<h3>8팀 하이라이트 · 매회 랜덤 3팀</h3><p>8곡은 모두 기본 탑재되어 있으며 한 번의 체험에서 3곡만 재생합니다. 각 곡 14.8~28.4초, 곡 사이 1초 공백.</p>';
     const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     D.forEach((a,i)=>{const links=songUrl(a),section=document.createElement('div');section.style.cssText='border:1px solid #ece8eb;padding:12px;margin:8px 0;';
       section.innerHTML=`<b>${String(i+1).padStart(2,'0')} · ${esc(a.name)} — ${esc(a.song)} (${a.seconds.toFixed(1)}s)</b><br><small>추천 YouTube 영상 ID</small> <input data-field="youtube" value="${esc(links.youtube)}" maxlength="11"><br><small>Spotify 플레이리스트 ID</small> <input data-field="spotify" value="${esc(links.spotify)}" maxlength="22"><br><button type="button">연결 저장</button> <small class="message"></small>`;

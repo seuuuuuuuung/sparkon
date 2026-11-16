@@ -125,8 +125,8 @@
           do{c.font=`${weight} ${size}px ${family}`;if(c.measureText(text).width<=maxWidth||size<=min)break;size-=.5;}while(true);
           c.fillText(text,mid,y);
         }
-        label(artist,h-31,opts.labelSize||16,10,ink,800,"'PP Neue Machina Inktrap','Pretendard',Arial,sans-serif");
-        label(song,h-10,Math.max(11,(opts.labelSize||16)-1),9,pink,600,"'PP Palma','Pretendard',Arial,sans-serif");
+        label(artist,h-(opts.artistBottom??31),opts.labelSize||16,10,ink,800,"'PP Neue Machina Inktrap','Pretendard',Arial,sans-serif");
+        label(song,h-(opts.songBottom??10),Math.max(11,(opts.labelSize||16)-1),9,pink,600,"'PP Palma','Pretendard',Arial,sans-serif");
       });
     }
     for(let i=1;i<n;i++){

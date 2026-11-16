@@ -1,4 +1,4 @@
-/* SPARKON v45 mobile record: original identity, clearer reaction graph and type. */
+/* SPARKON v49 mobile record: fitted dynamic song tag, full-bleed portraits. */
 (() => {
   'use strict';
   const $=id=>document.getElementById(id),V=window.SPARKON_V41,D=window.SPARKON_DATA;
@@ -52,7 +52,7 @@
   const thumb=$('artistVisual');
   const portrait=portraitPath(artist.id);
   thumb.src=portrait||'./assets/logo.png';thumb.alt=artist.name+' 멤버 단체 이미지';
-  thumb.onerror=()=>{if(artist.id===1&&thumb.src.indexOf('kickflip_reference_photo')<0){thumb.src='./assets/kickflip_reference_photo.png';return;}thumb.hidden=true;};
+  thumb.onerror=()=>{thumb.hidden=true;};
   if(!selected){$('artistHook').textContent='오늘의 세 무대를 다시 만나며 나만의 스파크를 찾아보세요.';}
 
   function sizeCanvas(c,w,h){const dpr=Math.min(2,window.devicePixelRatio||1);c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);c.style.width=w+'px';c.style.height=h+'px';const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);return x;}
@@ -82,12 +82,23 @@
     if(maxWidth){const actual=c.measureText(content).width;if(actual>maxWidth&&actual>0){size*=maxWidth/actual;c.font=`${weight} ${size}px ${fontFamily}`;}}
     c.fillStyle=color;c.fillText(content,x,y);c.restore();
   }
-  function fitWholeGroup(c,im,x,y,w,h){
-    c.fillStyle='#f4f3f4';c.fillRect(x,y,w,h);
-    const ratio=Math.min(w/im.naturalWidth,h/im.naturalHeight),iw=im.naturalWidth*ratio,ih=im.naturalHeight*ratio;
-    c.drawImage(im,x+(w-iw)/2,y+(h-ih)/2,iw,ih);
+  function fillPortraitFrame(c,im,x,y,w,h){
+    c.save();c.beginPath();c.rect(x,y,w,h);c.clip();
+    // Cover, not contain: preserve the photo's aspect ratio, fill every edge,
+    // and crop a little more from below to keep the members' faces visible.
+    const ratio=Math.max(w/im.naturalWidth,h/im.naturalHeight);
+    const iw=im.naturalWidth*ratio,ih=im.naturalHeight*ratio;
+    c.drawImage(im,x+(w-iw)/2,y+(h-ih)*.34,iw,ih);c.restore();
   }
   async function exportImage(){
+    // Canvas text does not guarantee that CSS webfonts have been requested.
+    // Explicitly load every family/weight used by the generated PNG first.
+    await Promise.all([
+      "900 132px 'PP Neue Machina Inktrap'",
+      "700 38px 'Paperlogy'",
+      "800 40px 'Paperlogy'",
+      "700 28px 'PP Palma'"
+    ].map(font=>document.fonts.load(font,'SPARKON 가나다 0123')));
     await document.fonts.ready;
     const c=document.createElement('canvas');c.width=1080;c.height=1701;const x=c.getContext('2d');
     // Keep the original designer's artboard, logo, star and grid intact.
@@ -105,16 +116,40 @@
       x.drawImage(plate,700,0,120,340,700,0,120,340);
       x.drawImage(plate,820,0,260,440,820,0,260,440);
     }
-    V.sparkAccents(x,record.sparkType,825,227,.52);
+    // The original SPARKON spark is sufficient for the WAVE result here;
+    // the previous version added two distracting parallel pink squiggles.
+    if(record.sparkType!=='WAVE')V.sparkAccents(x,record.sparkType,825,227,.52);
     // The original lime skewed song tab is left untouched.
     clear(94,570,522,60);
     typography(x,'나를 움직이게 만든 '+artist.name+'의 노래',99,606,27,V.ink,700,'ko',518);
-    x.fillStyle=V.lime;x.beginPath();x.moveTo(683,557);x.lineTo(981,557);x.lineTo(945,625);x.lineTo(680,625);x.closePath();x.fill();
-    x.textAlign='center';typography(x,artist.song.toUpperCase(),833,605,43,V.ink,900,'display',250);x.textAlign='left';
-    const bx=103,by=663,bw=875,bh=519;
+    // The right edge stays locked inside the artwork margin (x=980), while
+    // the lime shape expands LEFT with the title's real font-measured width.
+    const songTitle=artist.song.toUpperCase(),songRight=980,maximumTagWidth=360;
+    let songSize=43,songWidth;
+    x.save();
+    do{x.font=`900 ${songSize}px 'PP Neue Machina Inktrap','Pretendard',sans-serif`;
+      songWidth=x.measureText(songTitle).width;
+      if(songWidth+86<=maximumTagWidth||songSize<=27)break;
+      songSize-=1;
+    }while(true);
+    x.restore();
+    const songTagWidth=Math.min(maximumTagWidth,Math.max(206,songWidth+86));
+    const songLeft=songRight-songTagWidth;
+    // Erase the fixed-size lime sample tab baked into the reference image.
+    // Without this mask, shorter titles reveal its old rectangle at the left.
+    clear(614,550,372,82);
+    x.fillStyle=V.lime;x.beginPath();
+    x.moveTo(songLeft+34,557);x.lineTo(songRight,557);
+    x.lineTo(songRight-35,625);x.lineTo(songLeft,625);x.closePath();x.fill();
+    x.textAlign='center';
+    typography(x,songTitle,(songLeft+songRight)/2,605,songSize,V.ink,900,'display',songTagWidth-74);
+    x.textAlign='left';
+    // The source plate contains a sample KickFlip photo. Erase its complete
+    // rectangle, including the 1–3px fringes left by the old inset bounds.
+    clear(96,654,889,536);
+    const bx=103,by=661,bw=875,bh=522;
     let hasImage=false;
-    if(portrait){const im=new Image();im.src=portrait;try{await im.decode();fitWholeGroup(x,im,bx,by,bw,bh);hasImage=true;}catch{}}
-    if(!hasImage&&artist.id===1){const im=new Image();im.src='./assets/kickflip_reference_photo.png';try{await im.decode();fitWholeGroup(x,im,bx,by,bw,bh);hasImage=true;}catch{}}
+    if(portrait){const im=new Image();im.src=portrait;try{await im.decode();fillPortraitFrame(x,im,bx,by,bw,bh);hasImage=true;}catch{}}
     if(!hasImage){
       const gr=x.createLinearGradient(bx,by,bx+bw,by+bh);gr.addColorStop(0,'#ffe5f0');gr.addColorStop(.52,'#fa94c6');gr.addColorStop(1,'#dfff82');x.fillStyle=gr;x.fillRect(bx,by,bw,bh);
       x.save();x.beginPath();x.rect(bx,by,bw,bh);x.clip();V.star(x,774,830,350,V.pink,.22);V.star(x,284,980,174,V.lime,-.4);x.globalAlpha=.9;typography(x,name,126,931,Math.max(58,fs-15),'#fff',900,'display',780);x.restore();
