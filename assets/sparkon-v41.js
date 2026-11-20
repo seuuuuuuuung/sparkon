@@ -42,7 +42,8 @@
   idleMotion35.src='./assets/SPARKON_MOTION_v28_4K.mp4';
   idleMotion35.load();
   idleMotion35.style.objectFit='cover';
-  idle=function(now){const progress=(now-screenSince34)%6400/6400,opacity=.09+.91*(.5-.5*Math.cos(progress*Math.PI*2));pill34('버튼을 눌러, 나의 첫 페스티벌을 시작하세요','PRESS TO SPARK',opacity);};
+  // v52: the same label is now an accessible DOM button, independent of canvas rendering.
+  idle=function(){};
 
   // The user's source art has the actual lettering and original pictograms.
   // The guide's own 2048×1152 canvas preserves the source resolution while
@@ -85,6 +86,8 @@
       originalGuide.style.display=visible?'block':'none';
       if(visible)drawNativeGuide(now);
     }
+    const startPrompt=document.getElementById('sparkStartV52');
+    if(startPrompt)startPrompt.hidden=state!=='idle';
   };
   cv.addEventListener('click',unlockPlayback,{capture:true});
 
