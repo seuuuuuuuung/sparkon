@@ -37,10 +37,12 @@
     const elapsed=now-screenSince34;
     const visibility=Math.min(1,Math.max(0,(elapsed-840)/550));
     ctx.save();
-    ctx.fillStyle='#fff';ctx.fillRect(626,726,817,91);
+    // Only cover the old lettering. The light-stick handle starts at x≈1400,
+    // so the previous 817px-wide white patch mistakenly erased its lower half.
+    ctx.fillStyle='#fff';ctx.fillRect(626,726,715,91);
     ctx.globalAlpha=visibility;
     ctx.textAlign='left';ctx.fillStyle='#111';
-    ctx.font="800 30px 'Paperlogy','Pretendard',Arial,sans-serif";
+    ctx.font="700 29px 'Paperlogy','Pretendard',Arial,sans-serif";
     ctx.fillText('랜덤으로 만난 아티스트의 한 곡을 즐겨주세요.',647,769);
     ctx.font="500 18px 'PP Palma','Pretendard',Arial,sans-serif";
     ctx.fillStyle='#555';
@@ -108,7 +110,7 @@
     drawQR(908,188,280,qrUrl);
     T('QR을 스캔해 오늘 만난 아티스트를',1048,508,15,K.ink,'center',650);
     T('조금 더 가까이 만나보세요.',1048,533,15,K.ink,'center',650);
-    T('무대 · 멤버 인사 · TMI · 추천곡',1048,567,13,K.pink,'center',750);
+    T('무대 · 멤버 인사 · 추천곡 · 비하인드',1048,567,13,K.pink,'center',750);
     g.fillStyle='#f4f3f5';g.beginPath();g.roundRect(926,597,243,64,32);g.fill();
     T(seconds+'초 후 처음 화면으로 돌아갑니다.',1048,634,16,'#9d93d8','center',750);
   };

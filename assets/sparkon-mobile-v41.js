@@ -176,6 +176,6 @@
       const a=document.createElement('a');a.href=exportUrl;a.download='SPARKON_FIRST_SPARK_'+record.id+'.png';document.body.appendChild(a);a.click();a.remove();
       $('savedImage').src=exportUrl;$('preview').style.display='block';
     }catch(err){console.error(err);alert('이미지 생성 중 문제가 발생했습니다. 다시 눌러주세요.');}
-    finally{button.disabled=false;button.firstChild.textContent='기록 이미지 다운로드 하기 ';}
+    finally{button.disabled=false;button.firstChild.textContent='기록 이미지 저장하기 ';}
   });
 })();

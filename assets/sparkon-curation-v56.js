@@ -1,4 +1,4 @@
-/* SPARKON v55 — a single chance encounter carried into an artist-first mobile keepsake. */
+/* SPARKON v56 — short artist-first mobile keepsake with direct official channels. */
 (() => {
   'use strict';
   const data=window.SPARKON_DATA,core=window.SPARKON_V41;
@@ -44,6 +44,23 @@
       songs:[['Nobody Knows','네 사람의 보컬이 남기는 다른 여운을 느껴보세요.'],['Midas Touch','눈을 사로잡는 퍼포먼스와 중독적인 후렴을 다시 만나봐요.']]}
   ];
   const info=directory[artist.id]||directory[1];
+  // Verified artist channels, not search-result URLs. Indexed to SPARKON_DATA.
+  const officialChannels=[
+    {instagram:'https://www.instagram.com/lngshot4sho/',youtube:'https://www.youtube.com/@LNGSHOT4SHO',x:'https://x.com/LNGSHOT4sho'},
+    {instagram:'https://www.instagram.com/kickflip_jype/',youtube:'https://www.youtube.com/@kickflip_jype',x:'https://x.com/kickflip_jype'},
+    {instagram:'https://www.instagram.com/izna_offcl/',youtube:'https://www.youtube.com/@izna_offcl',x:'https://x.com/izna_offcl'},
+    {instagram:'https://www.instagram.com/allday_project/',youtube:'https://www.youtube.com/@ALLDAY_PROJECT',x:'https://x.com/ALLDAY_PROJECT'},
+    {instagram:'https://www.instagram.com/real_nexz/',youtube:'https://www.youtube.com/@NEXZ_official',x:'https://x.com/NEXZ_official'},
+    {instagram:'https://www.instagram.com/meovv/',youtube:'https://www.youtube.com/@MEOVV_OFFICIAL',x:'https://x.com/OFFICIAL_MEOVV'},
+    {instagram:'https://www.instagram.com/cravity_official/',youtube:'https://www.youtube.com/@CRAVITYofficial',x:'https://x.com/CRAVITYstarship'},
+    {instagram:'https://www.instagram.com/kissoflife_s2/',youtube:'https://www.youtube.com/@KISSOFLIFE_official',x:'https://x.com/KISSOFLIFE_S2'}
+  ];
+  const channels=officialChannels[artist.id]||officialChannels[1];
+  const socialSvg={
+    instagram:'<svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="3.4" y="3.4" width="21.2" height="21.2" rx="6.4" stroke="currentColor" stroke-width="2.5"/><circle cx="14" cy="14" r="4.9" stroke="currentColor" stroke-width="2.5"/><circle cx="20.65" cy="7.6" r="1.4" fill="currentColor"/></svg>',
+    youtube:'<svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="2" y="5.6" width="24" height="16.8" rx="5.2" fill="currentColor"/><path d="M11.4 9.65L19 14L11.4 18.35V9.65Z" fill="white"/></svg>',
+    x:'<svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M5 4.2H10L23.5 23.8H18.5L5 4.2Z" stroke="currentColor" stroke-width="2.35" stroke-linejoin="round"/><path d="M22.3 4.2L5.7 23.8" stroke="currentColor" stroke-width="2.25"/></svg>'
+  };
   // The record serial is stable, so refreshing the QR keeps the same note.
   const serial=Number.parseInt(String(rec.id).replace(/\D/g,''),10)||Math.max(1,artist.id+1);
   const member=info.members[(serial*7+artist.id*3)%info.members.length];
@@ -58,7 +75,6 @@
   const spotifyId=/^[A-Za-z0-9]{22}$/.test(rec.spotifyId||'')?rec.spotifyId:artist.spotify;
   const stageUrl=youtubeId?'https://www.youtube.com/watch?v='+youtubeId:'https://www.youtube.com/results?search_query='+encodeURIComponent(artist.name+' '+artist.song+' live');
   const behindUrl='https://www.youtube.com/results?search_query='+encodeURIComponent(artist.name+' 공식 비하인드 자컨');
-  const channelUrl='https://www.youtube.com/results?search_query='+encodeURIComponent(artist.name+' official youtube channel');
   const playlistUrl=spotifyId?'https://open.spotify.com/playlist/'+spotifyId:'https://open.spotify.com/search/'+encodeURIComponent(artist.name);
   const searchSong=s=>'https://open.spotify.com/search/'+encodeURIComponent(artist.name+' '+s);
   const date=safe(rec.date||core.today());
@@ -85,18 +101,6 @@
       <p class="letter-footnote-v55">오늘 만난 아티스트와 조금 더 가까워지는 첫 페이지</p>
     </section>
 
-    <section class="record-section-v55" aria-labelledby="choice-title-v55">
-      <p class="record-section-kicker-v55">WHAT CAUGHT YOUR SPARK?</p>
-      <h3 id="choice-title-v55">내 마음에 남은 순간</h3>
-      <p class="record-lead-v55">오늘 무대에서 가장 기억에 남는 건?</p>
-      <div class="choice-grid-v55" role="group" aria-label="기억에 남은 순간">
-        <button type="button" class="choice-v55" data-choice="performance" aria-pressed="false"><span class="emoji-v55">⚡</span>눈을 뗄 수 없었던 퍼포먼스</button>
-        <button type="button" class="choice-v55" data-choice="song" aria-pressed="false"><span class="emoji-v55">🎵</span>자꾸 생각나는 노래</button>
-        <button type="button" class="choice-v55" data-choice="members" aria-pressed="false"><span class="emoji-v55">💗</span>궁금해지는 멤버들</button>
-      </div>
-      <p id="choice-summary-v55" class="choice-summary-v55" aria-live="polite"></p>
-    </section>
-
     <section class="record-section-v55" aria-labelledby="replay-title-v55">
       <p class="record-section-kicker-v55">REPLAY THE SPARK</p>
       <h3 id="replay-title-v55">이 무대, 다시 만나볼래?</h3>
@@ -108,21 +112,6 @@
       </div>
     </section>
 
-    <section class="record-section-v55" aria-labelledby="behind-title-v55">
-      <p class="record-section-kicker-v55">GET TO KNOW THEM</p>
-      <h3 id="behind-title-v55">무대 밖에서는 이런 모습!</h3>
-      <p class="record-lead-v55"><strong>무대 위와는 또 다른 매력.</strong><br>무대에서는 이렇게 멋있는데, 평소에는 어떤 모습일까요? 멤버들의 일상과 케미를 만나보세요.</p>
-      <div class="curation-video-v55"><img src="${image}" loading="lazy" alt=""><div><strong>처음엔 이 영상부터!</strong><p>${safe(artist.name)}의 공식 비하인드와 멤버들 케미를 찾아보세요.</p></div></div>
-      <a class="record-link-v55 ink" href="${safe(behindUrl)}" target="_blank" rel="noopener noreferrer"><span>추천 비하인드 영상 보러 가기</span><span>↗</span></a>
-    </section>
-
-    <section class="record-section-v55" aria-labelledby="tmi-title-v55">
-      <p class="record-section-kicker-v55">LITTLE THINGS TO KNOW</p>
-      <h3 id="tmi-title-v55">알고 보면 더 재밌는 이야기</h3>
-      <p class="record-lead-v55">처음 만나는 ${safe(artist.name)}. 멤버들을 조금 더 가까이 알아보고, 팬이라면 알아두면 좋은 작은 이야기도 챙겨가요.</p>
-      <ul class="trivia-list-v55">${info.tmi.map((t,i)=>`<li><b>${String(i+1).padStart(2,'0')}</b><span>${safe(t)}</span></li>`).join('')}</ul>
-    </section>
-
     <section class="record-section-v55" aria-labelledby="songs-title-v55">
       <p class="record-section-kicker-v55">ONE MORE SONG?</p>
       <h3 id="songs-title-v55">한 곡만 더 들어볼래?</h3>
@@ -131,30 +120,29 @@
       <a class="record-link-v55 lime" href="${safe(playlistUrl)}" target="_blank" rel="noopener noreferrer"><span>${safe(artist.name)} PLAYLIST 듣기</span><span>↗</span></a>
     </section>
 
-    <section class="record-section-v55" aria-labelledby="end-title-v55">
-      <p class="record-section-kicker-v55">SEE YOU AT THE NEXT STAGE</p>
-      <h3 id="end-title-v55">우리 다음에 또 만나요</h3>
-      <p class="record-lead-v55">오늘의 우연한 만남이 오래 이어지기를.<br>당신의 첫 스파크를 저장하고, 앞으로의 무대도 함께해 보세요.</p>
-      <a class="record-link-v55 white" href="${safe(channelUrl)}" target="_blank" rel="noopener noreferrer"><span>공식 아티스트 채널 찾아보기</span><span>↗</span></a>
+    <section class="record-section-v55" aria-labelledby="behind-title-v55">
+      <p class="record-section-kicker-v55">GET TO KNOW THEM</p>
+      <h3 id="behind-title-v55">무대 밖에서는 이런 모습!</h3>
+      <p class="record-lead-v55"><strong>무대 위와는 또 다른 매력.</strong><br>무대에서는 이렇게 멋있는데, 평소에는 어떤 모습일까요? 멤버들의 일상과 케미를 만나보세요.</p>
+      <div class="curation-video-v55"><img src="${image}" loading="lazy" alt=""><div><strong>처음엔 이 영상부터!</strong><p>${safe(artist.name)}의 공식 비하인드와 멤버들 케미를 찾아보세요.</p></div></div>
+      <a class="record-link-v55 ink" href="${safe(behindUrl)}" target="_blank" rel="noopener noreferrer"><span>추천 비하인드 영상 보러 가기</span><span>↗</span></a>
+    </section>
+
+    <section class="record-social-section-v56" aria-label="${safe(artist.name)} 공식 소셜 채널">
+      <p class="record-section-kicker-v55">OFFICIAL CHANNELS</p>
+      <div class="record-social-icons-v56">
+        ${[['instagram','Instagram'],['youtube','YouTube'],['x','X (Twitter)']].map(([service,label])=>`<a class="record-social-link-v56" href="${safe(channels[service])}" target="_blank" rel="noopener noreferrer" aria-label="${safe(artist.name)} 공식 ${label}" title="${safe(artist.name)} · ${label}">${socialSvg[service]}</a>`).join('')}
+      </div>
     </section>`;
   const originalHeader=document.querySelector('#content > .top');
   originalHeader?.insertAdjacentElement('afterend',hero);
   const save=document.querySelector('#content .save');
   const download=document.getElementById('download');
-  if(download){download.firstChild.textContent='나의 기록 저장하기 ';download.setAttribute('aria-label','첫 스파크 기록 이미지 저장하기');}
+  if(download){download.firstChild.textContent='기록 이미지 저장하기 ';download.setAttribute('aria-label','나의 스파크 기록 이미지 저장하기');}
   if(save){
+    const heading=save.querySelector('h3');
+    if(heading)heading.textContent='나의 스파크 기록 저장하기';
     const note=save.querySelector('.note');
     if(note)note.textContent='오늘 만난 무대를 내 휴대폰에 간직해 보세요.';
   }
-  const storageKey='sparkon-favorite-v55-'+rec.id+'-'+artist.id;
-  const messages={performance:'퍼포먼스가 오래 기억에 남았군요. 그 무대, 다시 만나봐요!',song:'노래가 남았다면 플레이리스트에서 한 곡 더 이어 들어봐요.',members:'멤버들이 궁금해졌다면 무대 밖 이야기부터 시작해 봐요.'};
-  const choices=[...hero.querySelectorAll('.choice-v55')];
-  const summary=hero.querySelector('#choice-summary-v55');
-  const setChoice=value=>{
-    choices.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.choice===value)));
-    if(summary)summary.textContent=messages[value]||'';
-    try{if(value)localStorage.setItem(storageKey,value);}catch{}
-  };
-  choices.forEach(button=>button.addEventListener('click',()=>setChoice(button.dataset.choice)));
-  try{setChoice(localStorage.getItem(storageKey));}catch{}
 })();

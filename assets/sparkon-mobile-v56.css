@@ -1,4 +1,4 @@
-/* SPARKON v55 — the mobile record is a personal artist encounter, not a 3-song scorecard. */
+/* SPARKON v56 — concise mobile journey: artist, greeting, replay, songs, behind, social, save. */
 main{max-width:653px;padding:0 clamp(22px,6vw,40px) 55px;overflow:hidden}
 #perspective{height:500px;opacity:.32}
 .top{padding:45px 0 38px;text-align:left;border-bottom:1px solid #e5e5e8}
@@ -28,25 +28,16 @@ main{max-width:653px;padding:0 clamp(22px,6vw,40px) 55px;overflow:hidden}
 .letter-body-v55{margin:32px 0 28px;font:600 clamp(20px,5vw,27px)/1.75 'Nanum Pen Script','Apple Chancery','Bradley Hand','Comic Sans MS',var(--body);letter-spacing:-.05em;transform:rotate(-1.1deg);white-space:pre-line;color:#262024}
 .letter-from-v55{text-align:right;font:700 13px var(--body);color:#b5206f;transform:rotate(-1deg)}
 .letter-footnote-v55{font:550 11px/1.5 var(--body);color:#999095;margin-top:14px}
-.choice-grid-v55{display:grid;gap:10px;margin-top:17px}
-.choice-v55{width:100%;min-height:70px;display:flex;gap:15px;align-items:center;text-align:left;border:1.4px solid #e6e3e6;border-radius:0;background:#fff;color:#28242a;padding:15px 17px;cursor:pointer;font:730 15px var(--body);transition:background .16s,border-color .16s}
-.choice-v55 .emoji-v55{font-size:24px}
-.choice-v55[aria-pressed=true]{border:2px solid var(--pink);background:#fff0f8;color:#a61460}
-.choice-summary-v55{margin-top:14px;color:#a61460;font:740 12px var(--body);min-height:20px}
 .record-replay-v55{border:1px solid #dddbe0;padding:20px 20px 23px}
 .record-replay-v55 .track-v55{font:900 clamp(20px,5.5vw,30px) var(--display);color:var(--pink);margin:4px 0 10px;letter-spacing:-.035em}
 .record-link-v55{display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:66px;padding:15px 18px;text-decoration:none;color:#fff;background:var(--pink);font:800 14px/1.4 var(--body);margin-top:17px}
 .record-link-v55 span:last-child{font:900 24px var(--display)}
 .record-link-v55.lime{background:var(--lime);color:#181318}
 .record-link-v55.ink{background:#17141a;color:#fff}
-.record-link-v55.white{border:1px solid #17141a;background:#fff;color:#17141a}
 .curation-video-v55{display:flex;gap:14px;align-items:center;margin-top:20px;border-top:1px solid #e6e3e6;padding-top:16px}
 .curation-video-v55 img{width:100px;aspect-ratio:1/1;object-fit:cover;flex:0 0 auto}
 .curation-video-v55 strong{font:800 14px/1.4 var(--body);display:block}
 .curation-video-v55 p{margin:5px 0 0;font:500 12px/1.5 var(--body);color:#6b626b}
-.trivia-list-v55{list-style:none;padding:0;margin:14px 0 0;border-top:1px solid #ddd}
-.trivia-list-v55 li{padding:16px 1px;display:flex;gap:16px;border-bottom:1px solid #e6e3e6;font:650 14px/1.55 var(--body)}
-.trivia-list-v55 li b{color:var(--pink);font:900 13px var(--latin)}
 .one-more-v55{margin-top:6px}
 .one-more-item-v55{padding:20px 0;border-top:1px solid #dedbdf}
 .one-more-item-v55:last-of-type{border-bottom:1px solid #dedbdf}
@@ -55,9 +46,15 @@ main{max-width:653px;padding:0 clamp(22px,6vw,40px) 55px;overflow:hidden}
 .one-more-item-v55 em{font:900 12px var(--latin);color:var(--pink);font-style:normal}
 .one-more-item-v55 p{font:550 13px/1.65 var(--body);color:#59525b;margin:8px 0}
 .one-more-item-v55 a{font:850 12px var(--body);color:#a81769;text-underline-offset:3px}
-.save{margin-top:66px;border:0;padding-top:0;text-align:left}
-.save h3{display:none}
-.save:before{content:'SAVE THE SPARK';display:block;font:900 14px var(--display);color:var(--pink);letter-spacing:.035em;margin-bottom:14px}
+.record-social-section-v56{margin-top:49px;padding:25px 0 10px;border-top:1px solid #e7e1e6;text-align:center}
+.record-social-section-v56 .record-section-kicker-v55{color:#706771;margin-bottom:17px}
+.record-social-icons-v56{display:flex;justify-content:center;align-items:center;gap:25px}
+.record-social-link-v56{display:flex;align-items:center;justify-content:center;width:62px;height:62px;color:#17141a;border:1.5px solid #211c21;border-radius:50%;background:#fff;transition:color .15s,background .15s,border-color .15s,transform .15s}
+.record-social-link-v56 svg{display:block;width:29px;height:29px}
+.record-social-link-v56:hover,.record-social-link-v56:focus-visible{background:var(--pink);border-color:var(--pink);color:#fff;transform:translateY(-2px)}
+.record-social-link-v56:focus-visible{outline:2px solid var(--pink);outline-offset:4px}
+.save{margin-top:47px;border:0;padding-top:0;text-align:left}
+.save h3{display:block;font:850 clamp(22px,5.4vw,31px)/1.2 var(--body);letter-spacing:-.055em;margin:0 0 17px}
 .save .download{background:var(--pink);color:#fff;border-radius:0;min-height:74px;padding:17px 14px;font:800 17px var(--body)}
 .save .download:hover{background:#cd277c}
 .save .download small{font:600 10px var(--latin);letter-spacing:.08em;color:#fff}
@@ -65,4 +62,4 @@ main{max-width:653px;padding:0 clamp(22px,6vw,40px) 55px;overflow:hidden}
 .metadata{margin-top:35px;justify-content:space-between;gap:8px}
 .footerline{font:900 12px var(--latin);letter-spacing:.09em;margin-top:24px;color:var(--pink)}
 @media(min-width:560px){.top{padding-top:55px}.record-section-v55{margin-top:69px}.letter-v55{padding:28px 34px}.letter-body-v55{margin:36px 0}}
-@media(prefers-reduced-motion:reduce){.choice-v55{transition:none}}
+@media(prefers-reduced-motion:reduce){.record-social-link-v56{transition:none}}
