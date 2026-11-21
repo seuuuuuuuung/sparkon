@@ -1,8 +1,0 @@
-MediaPipe Selfie Segmentation (version 0.1.1675465747)
-Copyright (c) Google LLC and contributors.
-Distributed under the Apache License, Version 2.0.
-License text: https://www.apache.org/licenses/LICENSE-2.0
-Package: https://www.npmjs.com/package/@mediapipe/selfie_segmentation
-
-The original distribution files and the same files embedded as data URLs in
-inline-assets.js are included to support local file:// exhibition playback.

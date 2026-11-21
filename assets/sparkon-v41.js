@@ -171,7 +171,9 @@
   playAlbum=function(i){playTrack(i,performance.now());};
   startLive=function(now){
     const picked=[...D];for(let i=picked.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[picked[i],picked[j]]=[picked[j],picked[i]];}
-    sessionAlbums=picked.slice(0,3).map(s=>({...s,artist:s.name,title:s.song,artistId:s.id,duration:s.seconds,audioPath:s.audio}));
+    // A single artist is the visitor's chance encounter; the next visitor
+    // gets another independently shuffled artist and its own highlight.
+    sessionAlbums=picked.slice(0,1).map(s=>({...s,artist:s.name,title:s.song,artistId:s.id,duration:s.seconds,audioPath:s.audio}));
     albumStats=sessionAlbums.map(s=>({artist:s.artist,title:s.title,artistId:s.id,duration:s.duration,start:0,curve:Array(12).fill(0),sum:0,valid:0,moving:0,peak:0,peakT:0,samples:0}));
     previewMode=false;totalSeconds=sessionAlbums.reduce((a,s)=>a+s.duration,0)+(sessionAlbums.length-1)*GAP/1000;
     state='live';t0=now;TR={};E_=0;mic=[];playWarning='';resultGraph=null;cameraTracks={};lastHandPos=null;
@@ -211,13 +213,19 @@
   };
   endLive=function(){
     state='proc';aud?.pause();const rows=albumStats.map(a=>({...a,avg:V.round(a.sum/Math.max(.1,a.duration),2),ratio:V.round(a.moving/Math.max(.1,a.duration),2),peak:V.round(a.peak,2),peakT:V.round(a.peakT,1),curve:a.curve.map(n=>V.round(n,2))}));
-    const winner=V.best(rows),type=V.classification(rows),metadata=V.types[type];
+    // Even when fist tracking briefly fails, the encountered artist is the
+    // outcome. Do not yield winner=-1 and a broken mobile record.
+    const winner=rows.length===1?0:V.best(rows),type=V.classification(rows),metadata=V.types[type];
     rec={v:3,preview:false,artists:rows,winner,sparkType:type,type:metadata.label,typeDesc:metadata.message,activeSec:V.round(R.active,1),strokes:R.str,duration:totalSeconds};
     postRec();v30qr=null;
   };
   hostUrl=function(r){
     const base=(LS.qrBase||((location.protocol==='https:')?new URL('record.html',location.href).href:DEFAULT_RECORD_URL)).split('#')[0].trim();
-    return base+'#'+V.encode(r);
+    const u=new URL(base);
+    if(u.pathname.endsWith('/'))u.pathname+='record.html';
+    else if(u.pathname.endsWith('/index.html'))u.pathname=u.pathname.replace(/index\.html$/,'record.html');
+    u.hash=V.encode(r);
+    return u.href;
   };
   postRec=function(){
     const num=Number(LS.sparkSerialV41||0)+1;LS.sparkSerialV41=String(num);
@@ -236,7 +244,13 @@
     if(!v30qr){T('QR 생성 오류',x+size/2,y+size/2,17,V.pink,'center');return;}
     g.fillStyle='#fff';g.fillRect(x,y,size,size);
     const n=v30qr.getModuleCount(),cell=size/(n+8);
-    g.fillStyle=V.ink;for(let row=0;row<n;row++)for(let col=0;col<n;col++)if(v30qr.isDark(row,col))g.fillRect(x+(col+4)*cell,y+(row+4)*cell,Math.ceil(cell+.10),Math.ceil(cell+.10));
+    // Snap both edges of each module to the same pixel grid. Ceil(cell)
+    // overprints adjacent white modules and causes unscannable QR codes.
+    g.fillStyle=V.ink;for(let row=0;row<n;row++)for(let col=0;col<n;col++)if(v30qr.isDark(row,col)){
+      const x0=Math.round(x+(col+4)*cell),x1=Math.round(x+(col+5)*cell);
+      const y0=Math.round(y+(row+4)*cell),y1=Math.round(y+(row+5)*cell);
+      g.fillRect(x0,y0,Math.max(1,x1-x0),Math.max(1,y1-y0));
+    }
   }
   // The exhibition screen uses the visitor's original, unmodified artwork
   // as its layout plate. Only variable data areas are replaced on the canvas.
@@ -345,13 +359,13 @@
   // Retain the existing permission, debug, fullscreen and record-export controls.
   renderAdmin=async function(){
     await baseAdmin();const panel=document.createElement('section');
-    panel.innerHTML='<h3>8팀 하이라이트 · 매회 랜덤 3팀</h3><p>8곡은 모두 기본 탑재되어 있으며 한 번의 체험에서 3곡만 재생합니다. 각 곡 14.8~28.4초, 곡 사이 1초 공백.</p>';
+    panel.innerHTML='<h3>8팀 중 랜덤 한 팀 · 한 곡 체험</h3><p>체험 시작마다 8팀 중 한 팀을 랜덤으로 선택하여 해당 곡의 하이라이트를 재생합니다. 다른 방문자는 새 아티스트와 만납니다.</p>';
     const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     D.forEach((a,i)=>{const links=songUrl(a),section=document.createElement('div');section.style.cssText='border:1px solid #ece8eb;padding:12px;margin:8px 0;';
       section.innerHTML=`<b>${String(i+1).padStart(2,'0')} · ${esc(a.name)} — ${esc(a.song)} (${a.seconds.toFixed(1)}s)</b><br><small>추천 YouTube 영상 ID</small> <input data-field="youtube" value="${esc(links.youtube)}" maxlength="11"><br><small>Spotify 플레이리스트 ID</small> <input data-field="spotify" value="${esc(links.spotify)}" maxlength="22"><br><button type="button">연결 저장</button> <small class="message"></small>`;
       section.querySelector('button').onclick=()=>{const youtube=section.querySelector('[data-field=youtube]').value.trim(),spotify=section.querySelector('[data-field=spotify]').value.trim();if(!/^[A-Za-z0-9_-]{11}$/.test(youtube)||!/^[A-Za-z0-9]{22}$/.test(spotify)){section.querySelector('.message').textContent='YouTube(11자) / Spotify(22자) ID를 확인하세요.';return;}playlistOverrides[a.id]={youtube,spotify};LS.sparkPlaylistV41=JSON.stringify(playlistOverrides);section.querySelector('.message').textContent='저장됨 · 다음 체험 결과부터 반영';};panel.appendChild(section);
     });
-    const button=document.createElement('button');button.textContent='3곡 랜덤 재생 테스트';button.onclick=()=>{toggleAdmin();startLive(performance.now());};panel.appendChild(button);
+    const button=document.createElement('button');button.textContent='랜덤 한 곡 재생 테스트';button.onclick=()=>{toggleAdmin();startLive(performance.now());};panel.appendChild(button);
     $('adm').appendChild(panel);
     const music=$('s2');if(music)music.textContent='8곡 내장 · '+playbackStatus+' (스피커 권한 별도 요청 없음)';
     const test=$('b2');if(test){test.textContent='스피커 소리 테스트';test.onclick=async()=>{

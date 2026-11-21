@@ -1,0 +1,68 @@
+/* SPARKON v55 — the mobile record is a personal artist encounter, not a 3-song scorecard. */
+main{max-width:653px;padding:0 clamp(22px,6vw,40px) 55px;overflow:hidden}
+#perspective{height:500px;opacity:.32}
+.top{padding:45px 0 38px;text-align:left;border-bottom:1px solid #e5e5e8}
+.top .logo{width:135px;min-width:0;margin:0 0 19px;mix-blend-mode:multiply}
+.top h1{font-size:clamp(21px,5.4vw,32px);line-height:1.05;letter-spacing:-.055em}
+.type-hero,.graph-section,.divider,.artist-section,.action-stack,.record-label{display:none!important}
+.record-v55{position:relative;z-index:1}
+.record-eyebrow-v55{margin:27px 0 12px;font:750 11px var(--latin);letter-spacing:.13em;color:#69636a}
+.record-intro-v55{font-size:clamp(18px,4.3vw,24px);font-weight:800;line-height:1.4;letter-spacing:-.04em;margin:0 0 12px}
+.record-artist-v55{font:900 clamp(51px,13.2vw,93px)/.98 var(--display);color:var(--pink);letter-spacing:-.075em;overflow-wrap:anywhere;margin:0 0 14px}
+.record-artist-v55.long{font-size:clamp(38px,10.1vw,69px)}
+.record-subtitle-v55{margin:0 0 19px;font-size:clamp(13px,3vw,16px);font-weight:600;line-height:1.75;letter-spacing:-.03em}
+.record-date-v55{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #222;border-bottom:1px solid #222;padding:12px 0;margin-bottom:20px;font:700 12px var(--latin);letter-spacing:.02em}
+.record-song-v55{display:flex;justify-content:space-between;gap:16px;background:var(--lime);padding:16px 22px 15px;clip-path:polygon(3% 0,100% 0,97% 100%,0 100%);font-weight:900;align-items:center;margin:0 0 12px}
+.record-song-v55 small{font:850 10px var(--latin);letter-spacing:.06em;flex:0 0 auto}
+.record-song-v55 strong{font:900 clamp(16px,4vw,24px) var(--display);text-align:right;overflow-wrap:anywhere}
+.record-photo-v55{margin:0;position:relative;aspect-ratio:875/522;overflow:hidden;background:linear-gradient(120deg,#ffd5e9,#c0fb31)}
+.record-photo-v55 img{width:100%;height:100%;object-fit:cover;object-position:center 33%;display:block}
+.record-photo-v55 figcaption{position:absolute;left:15px;bottom:13px;color:white;background:#111b;font:750 10px var(--latin);padding:7px 10px;letter-spacing:.08em}
+.record-section-v55{margin-top:56px}
+.record-section-kicker-v55{font:800 11px var(--latin);color:var(--pink);letter-spacing:.12em;margin:0 0 8px}
+.record-section-v55 h3{font:850 clamp(22px,5.4vw,31px)/1.2 var(--body);letter-spacing:-.055em;margin:0 0 12px}
+.record-lead-v55{font:550 14px/1.8 var(--body);color:#47454a;letter-spacing:-.025em;margin:0 0 19px}
+.letter-v55{background:#fffdfa;border:1px solid #e6e0dd;padding:24px 22px 23px;min-height:266px;box-shadow:7px 9px 0 #f5f3f0;position:relative;overflow:hidden}
+.letter-v55:before{content:'✦';position:absolute;top:15px;right:19px;color:var(--pink);font-size:34px}
+.letter-v55 .letter-top-v55{display:flex;justify-content:space-between;gap:10px;font:800 10px var(--latin);letter-spacing:.07em;color:#6e6670;padding-right:32px}
+.letter-body-v55{margin:32px 0 28px;font:600 clamp(20px,5vw,27px)/1.75 'Nanum Pen Script','Apple Chancery','Bradley Hand','Comic Sans MS',var(--body);letter-spacing:-.05em;transform:rotate(-1.1deg);white-space:pre-line;color:#262024}
+.letter-from-v55{text-align:right;font:700 13px var(--body);color:#b5206f;transform:rotate(-1deg)}
+.letter-footnote-v55{font:550 11px/1.5 var(--body);color:#999095;margin-top:14px}
+.choice-grid-v55{display:grid;gap:10px;margin-top:17px}
+.choice-v55{width:100%;min-height:70px;display:flex;gap:15px;align-items:center;text-align:left;border:1.4px solid #e6e3e6;border-radius:0;background:#fff;color:#28242a;padding:15px 17px;cursor:pointer;font:730 15px var(--body);transition:background .16s,border-color .16s}
+.choice-v55 .emoji-v55{font-size:24px}
+.choice-v55[aria-pressed=true]{border:2px solid var(--pink);background:#fff0f8;color:#a61460}
+.choice-summary-v55{margin-top:14px;color:#a61460;font:740 12px var(--body);min-height:20px}
+.record-replay-v55{border:1px solid #dddbe0;padding:20px 20px 23px}
+.record-replay-v55 .track-v55{font:900 clamp(20px,5.5vw,30px) var(--display);color:var(--pink);margin:4px 0 10px;letter-spacing:-.035em}
+.record-link-v55{display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:66px;padding:15px 18px;text-decoration:none;color:#fff;background:var(--pink);font:800 14px/1.4 var(--body);margin-top:17px}
+.record-link-v55 span:last-child{font:900 24px var(--display)}
+.record-link-v55.lime{background:var(--lime);color:#181318}
+.record-link-v55.ink{background:#17141a;color:#fff}
+.record-link-v55.white{border:1px solid #17141a;background:#fff;color:#17141a}
+.curation-video-v55{display:flex;gap:14px;align-items:center;margin-top:20px;border-top:1px solid #e6e3e6;padding-top:16px}
+.curation-video-v55 img{width:100px;aspect-ratio:1/1;object-fit:cover;flex:0 0 auto}
+.curation-video-v55 strong{font:800 14px/1.4 var(--body);display:block}
+.curation-video-v55 p{margin:5px 0 0;font:500 12px/1.5 var(--body);color:#6b626b}
+.trivia-list-v55{list-style:none;padding:0;margin:14px 0 0;border-top:1px solid #ddd}
+.trivia-list-v55 li{padding:16px 1px;display:flex;gap:16px;border-bottom:1px solid #e6e3e6;font:650 14px/1.55 var(--body)}
+.trivia-list-v55 li b{color:var(--pink);font:900 13px var(--latin)}
+.one-more-v55{margin-top:6px}
+.one-more-item-v55{padding:20px 0;border-top:1px solid #dedbdf}
+.one-more-item-v55:last-of-type{border-bottom:1px solid #dedbdf}
+.one-more-item-v55 .one-more-header-v55{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.one-more-item-v55 strong{font:900 22px var(--display);overflow-wrap:anywhere;letter-spacing:-.025em}
+.one-more-item-v55 em{font:900 12px var(--latin);color:var(--pink);font-style:normal}
+.one-more-item-v55 p{font:550 13px/1.65 var(--body);color:#59525b;margin:8px 0}
+.one-more-item-v55 a{font:850 12px var(--body);color:#a81769;text-underline-offset:3px}
+.save{margin-top:66px;border:0;padding-top:0;text-align:left}
+.save h3{display:none}
+.save:before{content:'SAVE THE SPARK';display:block;font:900 14px var(--display);color:var(--pink);letter-spacing:.035em;margin-bottom:14px}
+.save .download{background:var(--pink);color:#fff;border-radius:0;min-height:74px;padding:17px 14px;font:800 17px var(--body)}
+.save .download:hover{background:#cd277c}
+.save .download small{font:600 10px var(--latin);letter-spacing:.08em;color:#fff}
+.save .note{margin:13px 0;font:500 12px/1.5 var(--body);color:#80767e}
+.metadata{margin-top:35px;justify-content:space-between;gap:8px}
+.footerline{font:900 12px var(--latin);letter-spacing:.09em;margin-top:24px;color:var(--pink)}
+@media(min-width:560px){.top{padding-top:55px}.record-section-v55{margin-top:69px}.letter-v55{padding:28px 34px}.letter-body-v55{margin:36px 0}}
+@media(prefers-reduced-motion:reduce){.choice-v55{transition:none}}

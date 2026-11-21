@@ -8,8 +8,8 @@
   const params=new URLSearchParams(location.search),isDemo=params.has('demo');
   try{record=V.decode(location.hash.slice(1));}catch(err){console.warn('Invalid SPARKON QR payload',err);}
   if(!record&&isDemo){
-    const ids=[0,2,1],rows=ids.map((id,i)=>({artistId:id,artist:D[id].name,title:D[id].song,duration:D[id].seconds,avg:[.21,.33,.88][i],ratio:[.36,.47,.78][i],peak:[.4,.51,2.4][i],peakT:4,curve:Array.from({length:12},(_,j)=>i===2?(j===7?2.4:.5+.3*Math.sin(j*.8)):Math.max(.12,.2+.14*Math.sin(j*1.8+i)))}));
-    record={id:'0001',date:V.today(),winner:2,sparkType:'BURST',artists:rows};
+    const id=1,rows=[{artistId:id,artist:D[id].name,title:D[id].song,duration:D[id].seconds,avg:.88,ratio:.78,peak:2.4,peakT:4,curve:Array.from({length:12},(_,j)=>j===7?2.4:.5+.3*Math.sin(j*.8))}];
+    record={id:'0001',date:V.today(),winner:0,sparkType:'BURST',artists:rows};
     const badge=document.createElement('div');badge.id='demo';badge.textContent='DESIGN PREVIEW';document.body.appendChild(badge);
   }
   if(!record||!record.artists?.length){$('invalid').hidden=false;return;}
